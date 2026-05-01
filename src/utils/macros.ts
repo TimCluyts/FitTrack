@@ -1,0 +1,71 @@
+import type {Product, LogEntry, MacroTotals, Recipe} from '../types/fitness';
+
+export const calcMacros = (product: Product, amount: number): MacroTotals => ({
+	kcal: Math.round((product.kcal * amount) / 100),
+	protein: Math.round((product.protein * amount) / 10) / 10,
+	fat: Math.round((product.fat * amount) / 10) / 10,
+	carbs: Math.round((product.carbs * amount) / 10) / 10
+});
+
+export const sumMacros = (entries: MacroTotals[]): MacroTotals =>
+	entries.reduce(
+		(acc, m) => ({
+			kcal: acc.kcal + m.kcal,
+			protein: Math.round((acc.protein + m.protein) * 10) / 10,
+			fat: Math.round((acc.fat + m.fat) * 10) / 10,
+			carbs: Math.round((acc.carbs + m.carbs) * 10) / 10
+		}),
+		{kcal: 0, protein: 0, fat: 0, carbs: 0}
+	);
+
+/** Sum of all ingredient weights in grams. */
+export const calcRecipeTotalWeight = (recipe: Recipe): number =>
+	recipe.ingredients.reduce((sum, ing) => sum + ing.amount, 0);
+
+/** Full recipe macros (all ingredients combined). */
+export const calcRecipeTotalMacros = (recipe: Recipe, products: Product[]): MacroTotals =>
+	sumMacros(
+		recipe.ingredients.map(ing => {
+			const product = products.find(p => p.id === ing.productId);
+			return product
+				? calcMacros(product, ing.amount)
+				: {kcal: 0, protein: 0, fat: 0, carbs: 0};
+		})
+	);
+
+/**
+ * Macros for a given amount (grams) consumed from the recipe.
+ * Scales proportionally from the recipe's total weight.
+ */
+export const calcRecipeMacros = (
+	recipe: Recipe,
+	products: Product[],
+	amountGrams: number
+): MacroTotals => {
+	const totalWeight = calcRecipeTotalWeight(recipe);
+	if (totalWeight === 0 || amountGrams === 0) return {kcal: 0, protein: 0, fat: 0, carbs: 0};
+	const total = calcRecipeTotalMacros(recipe, products);
+	const ratio = amountGrams / totalWeight;
+	return {
+		kcal: Math.round(total.kcal * ratio),
+		protein: Math.round(total.protein * ratio * 10) / 10,
+		fat: Math.round(total.fat * ratio * 10) / 10,
+		carbs: Math.round(total.carbs * ratio * 10) / 10
+	};
+};
+
+export const getEntryMacros = (
+	entry: LogEntry,
+	products: Product[],
+	recipes: Recipe[] = []
+): MacroTotals | null => {
+	if (entry.recipeId) {
+		const recipe = recipes.find(r => r.id === entry.recipeId);
+		return recipe ? calcRecipeMacros(recipe, products, entry.amount ?? 0) : null;
+	}
+	if (entry.productId) {
+		const product = products.find(p => p.id === entry.productId);
+		return product ? calcMacros(product, entry.amount ?? 0) : null;
+	}
+	return null;
+};
