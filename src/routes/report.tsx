@@ -13,6 +13,7 @@ import {
 	ResponsiveContainer
 } from 'recharts';
 import {useNutritionStore} from '../store/nutritionStore';
+import {useLogStore} from '../store/logStore';
 import {useWeightStore} from '../store/weightStore';
 import {useTrainingStore} from '../store/trainingStore';
 import {getEntryMacros, sumMacros} from '../utils/macros';
@@ -55,7 +56,8 @@ const WORKOUT_COLS = [
 ];
 
 function ReportPage() {
-	const {products, logEntries, recipes} = useNutritionStore();
+	const {products, recipes} = useNutritionStore();
+	const {logEntries} = useLogStore();
 	const {weightEntries} = useWeightStore();
 	const {exercises, workoutLogs} = useTrainingStore();
 

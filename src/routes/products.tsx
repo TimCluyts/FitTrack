@@ -1,6 +1,9 @@
 import {createFileRoute} from '@tanstack/react-router';
 import {useState} from 'react';
 import {useNutritionStore} from '../store/nutritionStore';
+import {useLogStore} from '../store/logStore';
+import {useWeightStore} from '../store/weightStore';
+import {useTrainingStore} from '../store/trainingStore';
 import {useProductForm} from '../hooks/useProductForm';
 import {ProductForm} from '../components/products/ProductForm';
 import {ProductTable} from '../components/products/ProductTable';
@@ -15,7 +18,10 @@ export const Route = createFileRoute('/products')({
 });
 
 function ProductsPage() {
-	const {products, deleteProduct, importData} = useNutritionStore();
+	const {products, deleteProduct, importData: importNutrition} = useNutritionStore();
+	const {importData: importLog} = useLogStore();
+	const {importData: importWeight} = useWeightStore();
+	const {importData: importTraining} = useTrainingStore();
 	const form = useProductForm();
 	const [search, setSearch] = useState('');
 
@@ -25,8 +31,16 @@ function ProductsPage() {
 
 	const handleImport = () =>
 		importFromFile(data => {
-			if (confirm('This will replace all current data. Continue?'))
-				importData(data);
+			if (!confirm('This will replace all current data. Continue?')) return;
+			importNutrition({products: data.products, recipes: data.recipes});
+			if (data.logEntries) importLog({logEntries: data.logEntries});
+			if (data.weightEntries) importWeight({weightEntries: data.weightEntries});
+			if (data.exercises)
+				importTraining({
+					exercises: data.exercises,
+					routines: data.routines ?? [],
+					workoutLogs: data.workoutLogs ?? []
+				});
 		});
 
 	return (

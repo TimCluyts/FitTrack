@@ -2,6 +2,17 @@ import {create} from 'zustand';
 import {persist} from 'zustand/middleware';
 import type {Exercise, Routine, WorkoutLog} from '../types/fitness';
 
+function getInitialKey(): string {
+	try {
+		const userId = JSON.parse(
+			localStorage.getItem('user-prefs') ?? '{}'
+		)?.state?.activeUserId;
+		return userId ? `training-data-${userId}` : 'training-data-__none';
+	} catch {
+		return 'training-data-__none';
+	}
+}
+
 interface TrainingState {
 	exercises: Exercise[];
 	routines: Routine[];
@@ -13,6 +24,11 @@ interface TrainingState {
 	deleteRoutine: (id: string) => void;
 	addWorkoutLog: (log: Omit<WorkoutLog, 'id'>) => void;
 	deleteWorkoutLog: (id: string) => void;
+	importData: (data: {
+		exercises: Exercise[];
+		routines: Routine[];
+		workoutLogs: WorkoutLog[];
+	}) => void;
 }
 
 export const useTrainingStore = create<TrainingState>()(
@@ -77,8 +93,15 @@ export const useTrainingStore = create<TrainingState>()(
 			deleteWorkoutLog: id =>
 				set(state => ({
 					workoutLogs: state.workoutLogs.filter(l => l.id !== id)
-				}))
+				})),
+
+			importData: data =>
+				set({
+					exercises: data.exercises,
+					routines: data.routines,
+					workoutLogs: data.workoutLogs
+				})
 		}),
-		{name: 'training-data'}
+		{name: getInitialKey()}
 	)
 );

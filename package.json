@@ -1,11 +1,13 @@
 {
-	"name": "osb-b2c-ui",
+	"name": "fittrack",
 	"private": true,
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
 		"dev": "rspack serve",
 		"build": "rspack build",
+		"serve": "node server.mjs",
+		"start": "npm run build && node server.mjs",
 		"lint": "eslint . --report-unused-disable-directives",
 		"lint:fix": "eslint . --fix",
 		"prettier:format": "prettier --config .prettierrc 'src/**/*.{ts,tsx,js,jsx}' --write",

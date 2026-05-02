@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import {useNutritionStore} from '../store/nutritionStore';
+import {useLogStore} from '../store/logStore';
 import type {MealTime} from '../types/fitness';
 import {toGrams} from '../utils/serving';
 import {calcRecipeTotalWeight} from '../utils/macros';
@@ -12,7 +13,8 @@ export function useAddEntry() {
 	const [recipeAmount, setRecipeAmount] = useState('');
 	const [mealTime, setMealTime] = useState<MealTime>('morning');
 
-	const {products, recipes, addLogEntry} = useNutritionStore();
+	const {products, recipes} = useNutritionStore();
+	const {addLogEntry} = useLogStore();
 	const activeProduct = products.find(p => p.id === productId);
 	const selectedRecipe = recipes.find(r => r.id === recipeId);
 	const recipeWeight = selectedRecipe ? calcRecipeTotalWeight(selectedRecipe) : 0;
