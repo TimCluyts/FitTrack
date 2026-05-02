@@ -12,8 +12,21 @@ import {fileURLToPath} from 'node:url';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
 const DIST = join(ROOT, '.build');
-const DATA = join(ROOT, 'data.json');
+const DATA = join(process.env.DATA_DIR ?? ROOT, 'data.json');
 const PORT = Number(process.env.PORT) || 3001;
+const AUTH_USER = process.env.AUTH_USER ?? '';
+const AUTH_PASS = process.env.AUTH_PASS ?? '';
+const AUTH_ENABLED = AUTH_USER.length > 0 && AUTH_PASS.length > 0;
+
+function isAuthorized(req) {
+	if (!AUTH_ENABLED) return true;
+	const header = req.headers['authorization'] ?? '';
+	if (!header.startsWith('Basic ')) return false;
+	const decoded = Buffer.from(header.slice(6), 'base64').toString('utf-8');
+	const colon = decoded.indexOf(':');
+	if (colon === -1) return false;
+	return decoded.slice(0, colon) === AUTH_USER && decoded.slice(colon + 1) === AUTH_PASS;
+}
 
 const MIME = {
 	'.html': 'text/html; charset=utf-8',
@@ -50,6 +63,11 @@ createServer((req, res) => {
 	if (req.method === 'OPTIONS') {
 		res.writeHead(204);
 		return res.end();
+	}
+
+	if (!isAuthorized(req)) {
+		res.writeHead(401, {'WWW-Authenticate': 'Basic realm="FitTrack"'});
+		return res.end('Unauthorized');
 	}
 
 	if (req.url === '/api/data') {

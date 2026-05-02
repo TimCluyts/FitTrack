@@ -6,7 +6,9 @@
 	"scripts": {
 		"dev": "rspack serve",
 		"build": "rspack build",
-		"serve": "node server.mjs",
+		"serve": "node --env-file=.env server.mjs",
+		"deploy": "flyctl deploy",
+		"logs": "flyctl logs",
 		"start": "npm run build && node server.mjs",
 		"lint": "eslint . --report-unused-disable-directives",
 		"lint:fix": "eslint . --fix",

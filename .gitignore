@@ -3,3 +3,6 @@ node_modules/
 coverage/
 *.local
 .env*.local
+ecosystem.config.cjs
+data.json
+.env

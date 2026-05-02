@@ -265,7 +265,7 @@ function ReportPage() {
 						</ResponsiveContainer>
 					) : (
 						<div style={{color: '#a0aec0', fontSize: '13px'}}>
-							{weightEntries[0].weight} kg on {weightEntries[0].date}
+							{weightEntries[0]?.weight} kg on {weightEntries[0]?.date}
 						</div>
 					)}
 				</Card>

@@ -1,28 +1,60 @@
 {
 	"compilerOptions": {
+		/* Project */
 		"target": "ES2022",
-		"lib": ["esnext", "dom"],
+		"lib": [
+			"esnext",
+			"dom"
+		],
 		"jsx": "react-jsx",
+		"useDefineForClassFields": true,
+		/* Modules */
 		"module": "ESNext",
 		"rootDir": ".",
 		"moduleResolution": "bundler",
-		"baseUrl": "./src",
-		"paths": {
-			"@components/*": ["components/*"],
-			"@hooks/*": ["hooks/*"],
-			"@pages/*": ["pages/*"],
-			"@settings/*": ["settings/*"],
-			"@api/*": ["api/*"],
-			"@commonTypes/*": ["types/*"],
-			"@store/*": ["store/*"],
-			"@booking/*": ["booking/*"]
-		},
+		"typeRoots": [
+			"./node_modules/@types",
+			"./src/@types"
+		],
+		"resolveJsonModule": true,
+		/* JavaScript Support */
+		"allowJs": true,
+		/* Emit */
+		"declaration": false,
+		"sourceMap": true,
+		"outDir": "./.build/",
+		"noEmit": true,
+		"importsNotUsedAsValues": "remove",
+		/* Interop Constraints */
+		"isolatedModules": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		/* Type Checking */
 		"strict": true,
+		"noImplicitAny": false,
+		/* Other options */
+		"alwaysStrict": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
+		"exactOptionalPropertyTypes": false,
 		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"allowUnusedLabels": false,
+		"allowUnreachableCode": false,
+		/* Completeness */
 		"skipLibCheck": true
 	},
-	"include": ["src", "src/types", "./jest.setup.ts"],
-	"exclude": ["node_modules", "./.build"]
+	"include": [
+		"src",
+		"src/types",
+		"./jest.setup.ts",
+		"server.mjs",
+		"rspack.config.cjs"
+	],
+	"exclude": [
+		"node_modules",
+		"./.build"
+	]
 }

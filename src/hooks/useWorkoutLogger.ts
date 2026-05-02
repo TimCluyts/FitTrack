@@ -73,7 +73,7 @@ export function useWorkoutLogger(routine: Routine) {
 			.filter(l => l.exercises.some(e => e.exerciseId === id))
 			.sort((a, b) => b.date.localeCompare(a.date));
 		if (!relevant.length) return null;
-		return relevant[0].exercises.find(e => e.exerciseId === id)?.sets ?? null;
+		return relevant[0]?.exercises.find(e => e.exerciseId === id)?.sets ?? null;
 	};
 
 	const canSave = draft.some(de =>
