@@ -1,13 +1,62 @@
 import type {MacroTotals} from '../types/fitness';
+import type {DailyGoals} from '../store/goalsStore';
 
-const ITEMS = [
-	{key: 'kcal' as const, label: 'Kcal', format: (v: number) => String(v)},
-	{key: 'protein' as const, label: 'Protein', format: (v: number) => `${v}g`},
-	{key: 'fat' as const, label: 'Fat', format: (v: number) => `${v}g`},
-	{key: 'carbs' as const, label: 'Carbs', format: (v: number) => `${v}g`}
-];
+function kcalColor(v: number, g?: DailyGoals): string {
+	if (!g?.kcalMin && !g?.kcalMax) return 'white';
+	if (g.kcalMax != null && v > g.kcalMax) return '#fc8181';
+	if (g.kcalMin != null && v < g.kcalMin) return '#f6e05e';
+	return '#68d391';
+}
 
-export function MacroBar(totals: MacroTotals) {
+function minColor(v: number, min?: number): string {
+	if (min == null) return 'white';
+	return v >= min ? '#68d391' : '#f6e05e';
+}
+
+function maxColor(v: number, max?: number): string {
+	if (max == null) return 'white';
+	return v <= max ? '#68d391' : '#fc8181';
+}
+
+interface MacroBarProps extends MacroTotals {
+	goals?: DailyGoals;
+}
+
+export function MacroBar({goals, ...totals}: MacroBarProps) {
+	const items = [
+		{
+			key: 'kcal' as const,
+			label: 'Kcal',
+			value: String(totals.kcal),
+			color: kcalColor(totals.kcal, goals),
+			goalLabel:
+				goals?.kcalMin != null || goals?.kcalMax != null
+					? `${goals.kcalMin ?? '?'}–${goals.kcalMax ?? '?'}`
+					: null
+		},
+		{
+			key: 'protein' as const,
+			label: 'Protein',
+			value: `${totals.protein}g`,
+			color: minColor(totals.protein, goals?.protein),
+			goalLabel: goals?.protein != null ? `≥ ${goals.protein}g` : null
+		},
+		{
+			key: 'fat' as const,
+			label: 'Fat',
+			value: `${totals.fat}g`,
+			color: maxColor(totals.fat, goals?.fat),
+			goalLabel: goals?.fat != null ? `≤ ${goals.fat}g` : null
+		},
+		{
+			key: 'carbs' as const,
+			label: 'Carbs',
+			value: `${totals.carbs}g`,
+			color: maxColor(totals.carbs, goals?.carbs),
+			goalLabel: goals?.carbs != null ? `≤ ${goals.carbs}g` : null
+		}
+	];
+
 	return (
 		<div
 			style={{
@@ -28,16 +77,16 @@ export function MacroBar(totals: MacroTotals) {
 				Daily Totals
 			</div>
 			<div style={{display: 'flex', gap: '36px', flexWrap: 'wrap'}}>
-				{ITEMS.map(({key, label, format}) => (
+				{items.map(({key, label, value, color, goalLabel}) => (
 					<div key={key} style={{textAlign: 'center'}}>
 						<div
 							style={{
-								color: 'white',
+								color,
 								fontSize: '30px',
 								fontWeight: 700,
 								lineHeight: 1
 							}}>
-							{format(totals[key])}
+							{value}
 						</div>
 						<div
 							style={{
@@ -49,6 +98,16 @@ export function MacroBar(totals: MacroTotals) {
 							}}>
 							{label}
 						</div>
+						{goalLabel && (
+							<div
+								style={{
+									color: 'rgba(255,255,255,0.45)',
+									fontSize: '11px',
+									marginTop: '2px'
+								}}>
+								{goalLabel}
+							</div>
+						)}
 					</div>
 				))}
 			</div>

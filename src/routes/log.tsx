@@ -5,9 +5,12 @@ import {useDateNavigation} from '../hooks/useDateNavigation';
 import {DateNavBar} from '../components/log/DateNavBar';
 import {AddEntryCard} from '../components/log/AddEntryCard';
 import {MealSection} from '../components/log/MealSection';
+import {GoalsCard} from '../components/log/GoalsCard';
 import {MacroBar} from '../components/MacroBar';
 import {Card} from '../components/ui/Card';
 import {MEAL_TIMES, type MacroTotals} from '../types/fitness';
+import {useGoalsStore} from '../store/goalsStore';
+import {useUserStore} from '../store/userStore';
 
 export const Route = createFileRoute('/log')({
 	component: LogPage
@@ -20,6 +23,9 @@ function LogPage() {
 	const {data: recipes = []} = useRecipes();
 	const {data: logEntries = []} = useLogEntries();
 	const deleteLogEntry = useDeleteLogEntry();
+	const activeUserId = useUserStore(s => s.activeUserId);
+	const {goals, setGoals} = useGoalsStore();
+	const userGoals = activeUserId ? goals[activeUserId] : undefined;
 
 	const dayEntries = logEntries.filter(e => e.date === date);
 	const totals = sumMacros(
@@ -42,6 +48,11 @@ function LogPage() {
 
 			<AddEntryCard date={date} />
 
+			<GoalsCard
+				goals={userGoals}
+				onSave={g => activeUserId && setGoals(activeUserId, g)}
+			/>
+
 			{MEAL_TIMES.map(meal => {
 				const entries = dayEntries.filter(
 					e => e.mealTime === meal.value
@@ -58,7 +69,7 @@ function LogPage() {
 			})}
 
 			{dayEntries.length > 0 ? (
-				<MacroBar {...totals} />
+				<MacroBar {...totals} goals={userGoals} />
 			) : (
 				<Card style={{textAlign: 'center', padding: '48px 24px'}}>
 					<div style={{color: '#a0aec0', fontSize: '16px'}}>

@@ -17,8 +17,8 @@ export function useWorkoutLogger(routine: Routine) {
 	const {data: workoutLogs = []} = useWorkoutLogs();
 	const addWorkoutLog = useAddWorkoutLog();
 
-	const [date, setDate] = useState(
-		() => new Date().toISOString().slice(0, 10)
+	const [date, setDate] = useState(() =>
+		new Date().toISOString().slice(0, 10)
 	);
 	const [draft, setDraft] = useState<DraftExercise[]>(() =>
 		routine.exercises.map(re => ({
@@ -75,7 +75,33 @@ export function useWorkoutLogger(routine: Routine) {
 			.filter(l => l.exercises.some(e => e.exerciseId === id))
 			.sort((a, b) => b.date.localeCompare(a.date));
 		if (!relevant.length) return null;
-		return relevant[0]?.exercises.find(e => e.exerciseId === id)?.sets ?? null;
+		return (
+			relevant[0]?.exercises.find(e => e.exerciseId === id)?.sets ?? null
+		);
+	};
+
+	// Returns the last used weight if in the most recent session all sets hit
+	// targetReps with the same weight — signal to increase load.
+	const progressionHint = (exerciseId: string): number | null => {
+		const routineEx = routine.exercises.find(
+			re => re.exerciseId === exerciseId
+		);
+		if (!routineEx?.targetReps) return null;
+		const targetReps = routineEx.targetReps;
+
+		const lastLog = [...workoutLogs]
+			.filter(l => l.exercises.some(e => e.exerciseId === exerciseId))
+			.sort((a, b) => b.date.localeCompare(a.date))[0];
+
+		if (!lastLog) return null;
+
+		const ex = lastLog.exercises.find(e => e.exerciseId === exerciseId);
+		if (!ex || ex.sets.length === 0) return null;
+		if (!ex.sets.every(s => s.reps >= targetReps)) return null;
+		const weights = new Set(ex.sets.map(s => s.weight));
+		if (weights.size !== 1) return null;
+
+		return ex.sets[0]?.weight ?? null;
 	};
 
 	const canSave = draft.some(de =>
@@ -107,5 +133,17 @@ export function useWorkoutLogger(routine: Routine) {
 		return true;
 	};
 
-	return {date, setDate, draft, updateSet, addSet, removeSet, exerciseName, lastSets, canSave, save};
+	return {
+		date,
+		setDate,
+		draft,
+		updateSet,
+		addSet,
+		removeSet,
+		exerciseName,
+		lastSets,
+		progressionHint,
+		canSave,
+		save
+	};
 }

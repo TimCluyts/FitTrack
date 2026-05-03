@@ -6,6 +6,7 @@ import type {WorkoutSet} from '../../types/fitness';
 interface WorkoutExercisePanelProps {
 	name: string;
 	lastSets: WorkoutSet[] | null;
+	progressBadge?: number | null;
 	sets: DraftSet[];
 	onUpdateSet: (setIdx: number, field: 'weight' | 'reps', value: string) => void;
 	onAddSet: () => void;
@@ -17,6 +18,7 @@ const SET_HEADERS = ['#', 'Weight (kg)', 'Reps', ''];
 export function WorkoutExercisePanel({
 	name,
 	lastSets,
+	progressBadge,
 	sets,
 	onUpdateSet,
 	onAddSet,
@@ -38,6 +40,23 @@ export function WorkoutExercisePanel({
 				}}>
 				{name}
 			</div>
+			{progressBadge != null && (
+				<div
+					style={{
+						display: 'inline-flex',
+						alignItems: 'center',
+						gap: '4px',
+						fontSize: '11px',
+						fontWeight: 700,
+						color: '#fff',
+						background: '#dd6b20',
+						borderRadius: '4px',
+						padding: '2px 8px',
+						marginBottom: '4px'
+					}}>
+					↑ Increase weight — last: {progressBadge} kg
+				</div>
+			)}
 			{prevHint && (
 				<div
 					style={{

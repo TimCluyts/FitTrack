@@ -53,6 +53,7 @@ export function WorkoutLogger({routine, onSave, onCancel}: WorkoutLoggerProps) {
 						key={de.exerciseId}
 						name={logger.exerciseName(de.exerciseId)}
 						lastSets={logger.lastSets(de.exerciseId)}
+						progressBadge={logger.progressionHint(de.exerciseId)}
 						sets={de.sets}
 						onUpdateSet={(setIdx, field, value) =>
 							logger.updateSet(exIdx, setIdx, field, value)
