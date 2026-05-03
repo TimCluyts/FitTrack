@@ -11,7 +11,7 @@ import {Button} from '../components/ui/Button';
 import {Card} from '../components/ui/Card';
 import {Field} from '../components/ui/Field';
 import {PageHeader} from '../components/ui/PageHeader';
-import {exportData, importFromFile} from '../utils/backup';
+import {exportData, exportServerData, importFromFile, importServerData} from '../utils/backup';
 
 export const Route = createFileRoute('/products')({
 	component: ProductsPage
@@ -51,6 +51,20 @@ function ProductsPage() {
 				</Button>
 				<Button variant="outline" onClick={handleImport}>
 					Import Backup
+				</Button>
+				<span
+					style={{
+						width: '1px',
+						height: '20px',
+						background: '#e2e8f0',
+						alignSelf: 'center'
+					}}
+				/>
+				<Button variant="outline" onClick={exportServerData}>
+					Export Full Store
+				</Button>
+				<Button variant="outline" onClick={importServerData}>
+					Import Full Store
 				</Button>
 				{!form.visible && (
 					<Button onClick={form.open}>+ Add Product</Button>
