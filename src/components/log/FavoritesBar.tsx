@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useAddLogEntry} from '../../hooks/useApi';
 import {useFavoritesStore} from '../../store/favoritesStore';
 import {useUserStore} from '../../store/userStore';
@@ -131,9 +131,13 @@ export function FavoritesBar({products, date}: FavoritesBarProps) {
 	const activeUserId = useUserStore(s => s.activeUserId);
 	const {favorites, toggleFavorite} = useFavoritesStore();
 	const favoriteIds = activeUserId ? (favorites[activeUserId] ?? []) : [];
-	const favoriteProducts = favoriteIds
-		.map(id => products.find(p => p.id === id))
-		.filter((p): p is Product => p !== undefined);
+	const favoriteProducts = useMemo(
+		() =>
+			favoriteIds
+				.map(id => products.find(p => p.id === id))
+				.filter((p): p is Product => p !== undefined),
+		[favoriteIds, products]
+	);
 
 	if (!favoriteProducts.length || !activeUserId) return null;
 

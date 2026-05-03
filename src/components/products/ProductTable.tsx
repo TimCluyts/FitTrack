@@ -106,22 +106,25 @@ export function ProductTable({products, onEdit, onDelete, favoriteIds = [], onTo
 								<DataTable.Cell
 									align="right"
 									style={{whiteSpace: 'nowrap'}}>
-									{onToggleFavorite && (
-										<button
-											onClick={() => onToggleFavorite(p.id)}
-											title={favoriteIds.includes(p.id) ? 'Remove from favorites' : 'Add to favorites'}
-											style={{
-												background: 'none',
-												border: 'none',
-												cursor: 'pointer',
-												fontSize: '16px',
-												padding: '2px 4px',
-												color: favoriteIds.includes(p.id) ? '#d69e2e' : '#cbd5e0',
-												lineHeight: 1
-											}}>
-											★
-										</button>
-									)}{' '}
+									{onToggleFavorite && (() => {
+										const isFav = favoriteIds.includes(p.id);
+										return (
+											<button
+												onClick={() => onToggleFavorite(p.id)}
+												title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+												style={{
+													background: 'none',
+													border: 'none',
+													cursor: 'pointer',
+													fontSize: '16px',
+													padding: '2px 4px',
+													color: isFav ? '#d69e2e' : '#cbd5e0',
+													lineHeight: 1
+												}}>
+												★
+											</button>
+										);
+									})()}{' '}
 									<Button
 										variant="outline"
 										size="sm"

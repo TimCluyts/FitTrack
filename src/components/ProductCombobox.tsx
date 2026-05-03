@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import type {CSSProperties} from 'react';
 import {Field} from './ui/Field';
 import type {Product} from '../types/fitness';
@@ -22,9 +22,13 @@ export function ProductCombobox({products, value, onChange}: ProductComboboxProp
 		else if (selected) setSearch(selected.name);
 	}, [value, selected]);
 
-	const filtered = [...products]
-		.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
-		.sort((a, b) => a.name.localeCompare(b.name));
+	const filtered = useMemo(
+		() =>
+			[...products]
+				.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+				.sort((a, b) => a.name.localeCompare(b.name)),
+		[products, search]
+	);
 
 	const handleFocus = () => {
 		if (containerRef.current) {

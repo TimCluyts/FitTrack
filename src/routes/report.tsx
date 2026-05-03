@@ -1,5 +1,6 @@
 import {createFileRoute} from '@tanstack/react-router';
 import {useState} from 'react';
+import {formatPace} from '../utils/pace';
 import {
 	BarChart,
 	Bar,
@@ -62,11 +63,6 @@ const RUN_COLS = [
 	{label: 'Note', align: 'left' as const}
 ];
 
-function formatPace(paceMinPerKm: number): string {
-	const mins = Math.floor(paceMinPerKm);
-	const secs = Math.round((paceMinPerKm - mins) * 60);
-	return `${mins}:${String(secs).padStart(2, '0')} /km`;
-}
 
 function ReportPage() {
 	const {data: products = []} = useProducts();

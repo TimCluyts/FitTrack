@@ -1,6 +1,6 @@
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useExercises, useWorkoutLogs, useAddWorkoutLog} from './useApi';
-import type {Routine, WorkoutExercise, WorkoutSet} from '../types/fitness';
+import type {Routine, WorkoutExercise, WorkoutLog, WorkoutSet} from '../types/fitness';
 
 export interface DraftSet {
 	weight: string;
@@ -29,6 +29,23 @@ export function useWorkoutLogger(routine: Routine) {
 			}))
 		}))
 	);
+
+	// Single-pass index: exerciseId → logs sorted by date desc.
+	// All per-exercise lookups use this instead of re-filtering workoutLogs.
+	const logsByExercise = useMemo(() => {
+		const map = new Map<string, WorkoutLog[]>();
+		for (const log of workoutLogs) {
+			for (const ex of log.exercises) {
+				const bucket = map.get(ex.exerciseId) ?? [];
+				bucket.push(log);
+				map.set(ex.exerciseId, bucket);
+			}
+		}
+		for (const bucket of map.values()) {
+			bucket.sort((a, b) => b.date.localeCompare(a.date));
+		}
+		return map;
+	}, [workoutLogs]);
 
 	const updateSet = (
 		exIdx: number,
@@ -71,18 +88,16 @@ export function useWorkoutLogger(routine: Routine) {
 		exercises.find(e => e.id === id)?.name ?? 'Unknown';
 
 	const lastSets = (id: string): WorkoutSet[] | null => {
-		const relevant = [...workoutLogs]
-			.filter(l => l.exercises.some(e => e.exerciseId === id))
-			.sort((a, b) => b.date.localeCompare(a.date));
-		if (!relevant.length) return null;
-		return (
-			relevant[0]?.exercises.find(e => e.exerciseId === id)?.sets ?? null
-		);
+		const logs = logsByExercise.get(id);
+		if (!logs?.length) return null;
+		return logs[0]?.exercises.find(e => e.exerciseId === id)?.sets ?? null;
 	};
 
 	const exercisePR = (exerciseId: string): number | null => {
+		const logs = logsByExercise.get(exerciseId);
+		if (!logs) return null;
 		let max: number | null = null;
-		for (const log of workoutLogs) {
+		for (const log of logs) {
 			const ex = log.exercises.find(e => e.exerciseId === exerciseId);
 			if (!ex) continue;
 			for (const set of ex.sets) {
@@ -101,10 +116,7 @@ export function useWorkoutLogger(routine: Routine) {
 		if (!routineEx?.targetReps) return null;
 		const targetReps = routineEx.targetReps;
 
-		const lastLog = [...workoutLogs]
-			.filter(l => l.exercises.some(e => e.exerciseId === exerciseId))
-			.sort((a, b) => b.date.localeCompare(a.date))[0];
-
+		const lastLog = logsByExercise.get(exerciseId)?.[0];
 		if (!lastLog) return null;
 
 		const ex = lastLog.exercises.find(e => e.exerciseId === exerciseId);

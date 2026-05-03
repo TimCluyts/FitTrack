@@ -28,9 +28,7 @@ export function GoalsCard({goals, onSave}: GoalsCardProps) {
 	const [editing, setEditing] = useState(false);
 	const [draft, setDraft] = useState<DailyGoals>(goals ?? {});
 
-	const hasGoals =
-		goals &&
-		Object.values(goals).some(v => v != null && v !== undefined);
+	const hasGoals = goals && Object.values(goals).some(v => v != null);
 
 	const handleSave = () => {
 		onSave(draft);

@@ -1,5 +1,6 @@
 import {createFileRoute} from '@tanstack/react-router';
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
+import {formatPace} from '../utils/pace';
 import {
 	useRoutines,
 	useExercises,
@@ -23,12 +24,6 @@ import type {RoutineExercise} from '../types/fitness';
 export const Route = createFileRoute('/training')({
 	component: TrainingPage
 });
-
-function formatPace(paceMinPerKm: number): string {
-	const mins = Math.floor(paceMinPerKm);
-	const secs = Math.round((paceMinPerKm - mins) * 60);
-	return `${mins}:${String(secs).padStart(2, '0')} min/km`;
-}
 
 type Mode =
 	| {view: 'overview'}
@@ -85,44 +80,49 @@ function TrainingPage() {
 		);
 	}
 
-	const sortedWorkoutLogs = [...workoutLogs].sort((a, b) =>
-		b.date.localeCompare(a.date)
+	const sortedWorkoutLogs = useMemo(
+		() => [...workoutLogs].sort((a, b) => b.date.localeCompare(a.date)),
+		[workoutLogs]
 	);
-	const sortedRunLogs = [...runLogs].sort((a, b) =>
-		b.date.localeCompare(a.date)
+	const sortedRunLogs = useMemo(
+		() => [...runLogs].sort((a, b) => b.date.localeCompare(a.date)),
+		[runLogs]
 	);
 
-	// ── Weight PRs ──────────────────────────────────────────────────
-	const weightPRs = exercises
-		.map(ex => {
-			let max: number | null = null;
-			for (const log of workoutLogs) {
-				const found = log.exercises.find(e => e.exerciseId === ex.id);
-				if (!found) continue;
-				for (const set of found.sets) {
-					if (max === null || set.weight > max) max = set.weight;
+	const weightPRs = useMemo(() => {
+		// Single pass: build exerciseId → maxWeight map, then join with exercise names.
+		const maxByExercise = new Map<string, number>();
+		for (const log of workoutLogs) {
+			for (const ex of log.exercises) {
+				const curr = maxByExercise.get(ex.exerciseId) ?? 0;
+				for (const set of ex.sets) {
+					if (set.weight > curr) maxByExercise.set(ex.exerciseId, set.weight);
 				}
 			}
-			return max !== null ? {name: ex.name, weight: max} : null;
-		})
-		.filter((x): x is {name: string; weight: number} => x !== null)
-		.sort((a, b) => a.name.localeCompare(b.name));
+		}
+		return exercises
+			.flatMap(ex => {
+				const weight = maxByExercise.get(ex.id);
+				return weight != null ? [{name: ex.name, weight}] : [];
+			})
+			.sort((a, b) => a.name.localeCompare(b.name));
+	}, [exercises, workoutLogs]);
 
-	// ── Run PRs ─────────────────────────────────────────────────────
-	const prDistance =
-		runLogs.length > 0 ? Math.max(...runLogs.map(r => r.distanceKm)) : null;
-	const speedLogs = runLogs.filter(r => r.speedKmh != null);
-	const prSpeed =
-		speedLogs.length > 0
-			? Math.max(...speedLogs.map(r => r.speedKmh!))
-			: null;
-	const paceLogs = runLogs.filter(
-		r => r.durationMin != null && r.distanceKm > 0
-	);
-	const prPaceVal =
-		paceLogs.length > 0
-			? Math.min(...paceLogs.map(r => r.durationMin! / r.distanceKm))
-			: null;
+	const {prDistance, prSpeed, prPaceVal} = useMemo(() => {
+		if (!runLogs.length) return {prDistance: null, prSpeed: null, prPaceVal: null};
+		let prDistance: number | null = null;
+		let prSpeed: number | null = null;
+		let prPaceVal: number | null = null;
+		for (const r of runLogs) {
+			if (prDistance === null || r.distanceKm > prDistance) prDistance = r.distanceKm;
+			if (r.speedKmh != null && (prSpeed === null || r.speedKmh > prSpeed)) prSpeed = r.speedKmh;
+			if (r.durationMin != null && r.distanceKm > 0) {
+				const pace = r.durationMin / r.distanceKm;
+				if (prPaceVal === null || pace < prPaceVal) prPaceVal = pace;
+			}
+		}
+		return {prDistance, prSpeed, prPaceVal};
+	}, [runLogs]);
 
 	return (
 		<div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>

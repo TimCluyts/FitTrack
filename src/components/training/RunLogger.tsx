@@ -1,20 +1,13 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Card} from '../ui/Card';
 import {Button} from '../ui/Button';
 import {Field} from '../ui/Field';
 import {useAddRunLog, useWeightEntries} from '../../hooks/useApi';
+import {formatPace} from '../../utils/pace';
 
 interface RunLoggerProps {
 	onSave: () => void;
 	onCancel: () => void;
-}
-
-function formatPace(distanceKm: number, durationMin: number): string {
-	if (distanceKm <= 0) return '';
-	const paceTotal = durationMin / distanceKm;
-	const mins = Math.floor(paceTotal);
-	const secs = Math.round((paceTotal - mins) * 60);
-	return `${mins}:${String(secs).padStart(2, '0')} min/km`;
 }
 
 export function RunLogger({onSave, onCancel}: RunLoggerProps) {
@@ -26,9 +19,12 @@ export function RunLogger({onSave, onCancel}: RunLoggerProps) {
 	const [note, setNote] = useState('');
 	const addRunLog = useAddRunLog();
 	const {data: weightEntries = []} = useWeightEntries();
-	const latestWeight = weightEntries.length > 0
-		? [...weightEntries].sort((a, b) => b.date.localeCompare(a.date))[0].weight
-		: null;
+	const latestWeight = useMemo(() => {
+		if (!weightEntries.length) return null;
+		return weightEntries.reduce((latest, e) =>
+			e.date > latest.date ? e : latest
+		).weight;
+	}, [weightEntries]);
 
 	useEffect(() => {
 		const d = parseFloat(distanceKm);
@@ -47,10 +43,11 @@ export function RunLogger({onSave, onCancel}: RunLoggerProps) {
 
 	const canSave = distanceKm !== '' && parseFloat(distanceKm) > 0;
 
-	const pace =
-		distanceKm && durationMin
-			? formatPace(parseFloat(distanceKm), parseFloat(durationMin))
-			: null;
+	const pace = useMemo(() => {
+		const d = parseFloat(distanceKm);
+		const t = parseFloat(durationMin);
+		return d > 0 && t > 0 ? formatPace(t / d) : null;
+	}, [distanceKm, durationMin]);
 
 	const handleSave = () => {
 		if (!canSave) return;
