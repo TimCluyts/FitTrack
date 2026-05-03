@@ -26,12 +26,8 @@ interface UserData {
 }
 
 interface ServerData {
-	// Current format
 	shared?: {products?: Product[]; recipes?: Recipe[]};
 	users?: Partial<Record<UserId, UserData>>;
-	// Old flat format — kept for backward-compat migration
-	products?: Product[];
-	recipes?: Recipe[];
 }
 
 let cachedData: ServerData = {};
@@ -107,7 +103,6 @@ export async function initServerSync(): Promise<boolean> {
 				body: JSON.stringify(cachedData)
 			});
 		} else if (data.shared) {
-			// Current format
 			cachedData = data;
 			if (Array.isArray(data.shared.products)) {
 				useNutritionStore.setState({
@@ -117,16 +112,6 @@ export async function initServerSync(): Promise<boolean> {
 			}
 			const activeUserId = useUserStore.getState().activeUserId;
 			if (activeUserId) hydrateUser(activeUserId);
-		} else if (Array.isArray(data.products)) {
-			// Old flat format — migrate: treat as shared data, no per-user history
-			useNutritionStore.setState({
-				products: data.products,
-				recipes: data.recipes ?? []
-			});
-			cachedData = {
-				shared: {products: data.products, recipes: data.recipes ?? []},
-				users: {}
-			};
 		}
 
 		// When user switches, load their slice from the cached server data
