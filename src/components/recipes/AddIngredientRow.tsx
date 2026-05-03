@@ -3,6 +3,7 @@ import {Button} from '../ui/Button';
 import {DataTable} from '../ui/DataTable';
 import {Field} from '../ui/Field';
 import {IngredientAmountInput} from '../ServingInput';
+import {ProductCombobox} from '../ProductCombobox';
 import {useProducts} from '../../hooks/useApi';
 
 interface AddIngredientRowProps {
@@ -32,26 +33,16 @@ export function AddIngredientRow({onAdd}: AddIngredientRowProps) {
 						flexWrap: 'wrap',
 						alignItems: 'flex-start'
 					}}>
-					<Field style={{flex: '2 1 180px'}}>
-						<Field.Select
+					<div style={{flex: '2 1 180px'}}>
+						<ProductCombobox
+							products={products}
 							value={productId}
-							onChange={e => {
-								setProductId(e.target.value);
+							onChange={id => {
+								setProductId(id);
 								setAmount('');
-							}}>
-							<option value="">Add ingredient…</option>
-							{[...products]
-								.sort((a, b) => a.name.localeCompare(b.name))
-								.map(p => (
-									<option key={p.id} value={p.id}>
-										{p.name}
-										{p.servingSize
-											? ` · 1 ${p.servingLabel ?? 'serving'} = ${p.servingSize}g`
-											: ''}
-									</option>
-								))}
-						</Field.Select>
-					</Field>
+							}}
+						/>
+					</div>
 					<div style={{flex: '1 1 130px'}}>
 						<IngredientAmountInput
 							product={activeProduct}

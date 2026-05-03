@@ -168,3 +168,24 @@ export const useDeleteWorkoutLog = () => {
 		onSuccess: () => qc.invalidateQueries({queryKey: ['workoutLogs', uid]})
 	});
 };
+
+export const useRunLogs = () => {
+	const uid = useUid();
+	return useQuery({queryKey: ['runLogs', uid], queryFn: () => api.getRunLogs(uid!), enabled: !!uid});
+};
+export const useAddRunLog = () => {
+	const qc = useQueryClient();
+	const uid = useUid();
+	return useMutation({
+		mutationFn: (d: Omit<import('../types/fitness').RunLog, 'id'>) => api.addRunLog(uid!, d),
+		onSuccess: () => qc.invalidateQueries({queryKey: ['runLogs', uid]})
+	});
+};
+export const useDeleteRunLog = () => {
+	const qc = useQueryClient();
+	const uid = useUid();
+	return useMutation({
+		mutationFn: (id: string) => api.deleteRunLog(uid!, id),
+		onSuccess: () => qc.invalidateQueries({queryKey: ['runLogs', uid]})
+	});
+};

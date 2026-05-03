@@ -9,6 +9,8 @@ import {Card} from '../components/ui/Card';
 import {Field} from '../components/ui/Field';
 import {PageHeader} from '../components/ui/PageHeader';
 import {exportServerData, importServerData} from '../utils/backup';
+import {useFavoritesStore} from '../store/favoritesStore';
+import {useUserStore} from '../store/userStore';
 
 export const Route = createFileRoute('/products')({
 	component: ProductsPage
@@ -19,6 +21,9 @@ function ProductsPage() {
 	const deleteProduct = useDeleteProduct();
 	const form = useProductForm();
 	const [search, setSearch] = useState('');
+	const activeUserId = useUserStore(s => s.activeUserId);
+	const {favorites, toggleFavorite} = useFavoritesStore();
+	const favoriteIds = activeUserId ? (favorites[activeUserId] ?? []) : [];
 
 	const filtered = [...products].filter(p =>
 		p.name.toLowerCase().includes(search.toLowerCase())
@@ -63,6 +68,8 @@ function ProductsPage() {
 						products={filtered}
 						onEdit={form.edit}
 						onDelete={(id) => deleteProduct.mutate(id)}
+						favoriteIds={favoriteIds}
+						onToggleFavorite={activeUserId ? (id) => toggleFavorite(activeUserId, id) : undefined}
 					/>
 				) : (
 					<div

@@ -1,4 +1,5 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
+import type {CSSProperties} from 'react';
 import {Field} from './ui/Field';
 import type {Product} from '../types/fitness';
 
@@ -12,6 +13,8 @@ export function ProductCombobox({products, value, onChange}: ProductComboboxProp
 	const selected = products.find(p => p.id === value);
 	const [search, setSearch] = useState('');
 	const [open, setOpen] = useState(false);
+	const [dropdownPos, setDropdownPos] = useState<CSSProperties>({});
+	const containerRef = useRef<HTMLDivElement>(null);
 
 	// Keep input text in sync when an external change clears the selection
 	useEffect(() => {
@@ -24,6 +27,15 @@ export function ProductCombobox({products, value, onChange}: ProductComboboxProp
 		.sort((a, b) => a.name.localeCompare(b.name));
 
 	const handleFocus = () => {
+		if (containerRef.current) {
+			const r = containerRef.current.getBoundingClientRect();
+			setDropdownPos({
+				position: 'fixed',
+				top: r.bottom + 2,
+				left: r.left,
+				width: r.width
+			});
+		}
 		setSearch('');
 		setOpen(true);
 	};
@@ -47,7 +59,7 @@ export function ProductCombobox({products, value, onChange}: ProductComboboxProp
 	};
 
 	return (
-		<div style={{position: 'relative'}}>
+		<div ref={containerRef} style={{position: 'relative'}}>
 			<Field.Input
 				type="text"
 				value={open ? search : (selected?.name ?? '')}
@@ -59,17 +71,14 @@ export function ProductCombobox({products, value, onChange}: ProductComboboxProp
 			{open && (
 				<div
 					style={{
-						position: 'absolute',
-						top: 'calc(100% + 2px)',
-						left: 0,
-						right: 0,
+						...dropdownPos,
 						background: 'white',
 						border: '1px solid #d1d9d1',
 						borderRadius: '6px',
 						boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
 						maxHeight: '220px',
 						overflowY: 'auto',
-						zIndex: 100
+						zIndex: 1000
 					}}>
 					{filtered.length === 0 ? (
 						<div

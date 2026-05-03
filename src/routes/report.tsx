@@ -12,7 +12,7 @@ import {
 	Legend,
 	ResponsiveContainer
 } from 'recharts';
-import {useProducts, useRecipes, useLogEntries, useWeightEntries, useExercises, useWorkoutLogs} from '../hooks/useApi';
+import {useProducts, useRecipes, useLogEntries, useWeightEntries, useExercises, useWorkoutLogs, useRunLogs} from '../hooks/useApi';
 import {getEntryMacros, sumMacros} from '../utils/macros';
 import {Card} from '../components/ui/Card';
 import {DataTable} from '../components/ui/DataTable';
@@ -52,6 +52,22 @@ const WORKOUT_COLS = [
 	{label: 'Volume (kg)', align: 'right' as const}
 ];
 
+const RUN_COLS = [
+	{label: 'Date', align: 'left' as const},
+	{label: 'Distance', align: 'right' as const},
+	{label: 'Duration', align: 'right' as const},
+	{label: 'Pace', align: 'right' as const},
+	{label: 'Speed', align: 'right' as const},
+	{label: 'Kcal', align: 'right' as const},
+	{label: 'Note', align: 'left' as const}
+];
+
+function formatPace(paceMinPerKm: number): string {
+	const mins = Math.floor(paceMinPerKm);
+	const secs = Math.round((paceMinPerKm - mins) * 60);
+	return `${mins}:${String(secs).padStart(2, '0')} /km`;
+}
+
 function ReportPage() {
 	const {data: products = []} = useProducts();
 	const {data: recipes = []} = useRecipes();
@@ -59,6 +75,7 @@ function ReportPage() {
 	const {data: weightEntries = []} = useWeightEntries();
 	const {data: exercises = []} = useExercises();
 	const {data: workoutLogs = []} = useWorkoutLogs();
+	const {data: runLogs = []} = useRunLogs();
 
 	// ── Nutrition ──────────────────────────────────────────────────
 	const dayMap = new Map<string, MacroTotals>();
@@ -106,11 +123,22 @@ function ReportPage() {
 				})
 		: [];
 
+	// ── Running ────────────────────────────────────────────────────
+	const sortedRunLogs = [...runLogs].sort((a, b) =>
+		a.date.localeCompare(b.date)
+	);
+	const runChartData = sortedRunLogs.slice(-30).map(r => ({
+		distanceKm: r.distanceKm,
+		speedKmh: r.speedKmh ?? null,
+		label: r.date.slice(5).replace('-', '/')
+	}));
+
 	const hasNutrition = allDays.length > 0;
 	const hasWeight = weightEntries.length > 0;
 	const hasTraining = workoutLogs.length > 0;
+	const hasRunning = runLogs.length > 0;
 
-	if (!hasNutrition && !hasWeight && !hasTraining) {
+	if (!hasNutrition && !hasWeight && !hasTraining && !hasRunning) {
 		return (
 			<Card style={{textAlign: 'center', padding: '60px 24px'}}>
 				<div style={{color: '#a0aec0', fontSize: '16px'}}>
@@ -382,6 +410,119 @@ function ReportPage() {
 							) : null}
 						</Card>
 					)}
+				</>
+			)}
+
+			{/* ── Running ── */}
+			{hasRunning && (
+				<>
+					<Card>
+						<div style={CHART_TITLE}>Distance per run (km)</div>
+						{runChartData.length > 1 ? (
+							<ResponsiveContainer width="100%" height={220}>
+								<LineChart
+									data={runChartData}
+									margin={{top: 4, right: 12, left: 0, bottom: 4}}>
+									<CartesianGrid
+										strokeDasharray="3 3"
+										stroke="#e8f0e9"
+									/>
+									<XAxis dataKey="label" tick={AXIS_TICK} />
+									<YAxis
+										tick={AXIS_TICK}
+										width={48}
+										domain={[0, 'auto']}
+									/>
+									<Tooltip
+										contentStyle={TOOLTIP_CS}
+										formatter={v => [`${v} km`, 'Distance']}
+									/>
+									<Line
+										type="monotone"
+										dataKey="distanceKm"
+										stroke="#4299e1"
+										strokeWidth={2}
+										dot={{r: 3, fill: '#4299e1'}}
+										activeDot={{r: 5}}
+									/>
+								</LineChart>
+							</ResponsiveContainer>
+						) : (
+							<div style={{color: '#a0aec0', fontSize: '13px'}}>
+								{runLogs[0]?.distanceKm} km on {runLogs[0]?.date}
+							</div>
+						)}
+					</Card>
+
+					{runChartData.some(r => r.speedKmh != null) && (
+						<Card>
+							<div style={CHART_TITLE}>Average speed (km/h)</div>
+							<ResponsiveContainer width="100%" height={200}>
+								<LineChart
+									data={runChartData}
+									margin={{top: 4, right: 12, left: 0, bottom: 4}}>
+									<CartesianGrid
+										strokeDasharray="3 3"
+										stroke="#e8f0e9"
+									/>
+									<XAxis dataKey="label" tick={AXIS_TICK} />
+									<YAxis
+										tick={AXIS_TICK}
+										width={48}
+										domain={['auto', 'auto']}
+									/>
+									<Tooltip
+										contentStyle={TOOLTIP_CS}
+										formatter={v => [`${v} km/h`, 'Speed']}
+									/>
+									<Line
+										type="monotone"
+										dataKey="speedKmh"
+										stroke="#ed8936"
+										strokeWidth={2}
+										dot={{r: 3, fill: '#ed8936'}}
+										activeDot={{r: 5}}
+										connectNulls
+									/>
+								</LineChart>
+							</ResponsiveContainer>
+						</Card>
+					)}
+
+					<Card>
+						<div style={CHART_TITLE}>Run history</div>
+						<DataTable columns={RUN_COLS} minWidth={400}>
+							{[...sortedRunLogs].reverse().map(r => {
+								const pace =
+									r.durationMin != null && r.distanceKm > 0
+										? r.durationMin / r.distanceKm
+										: null;
+								return (
+									<DataTable.Row key={r.id}>
+										<DataTable.Cell>{r.date}</DataTable.Cell>
+										<DataTable.Cell align="right">
+											{r.distanceKm} km
+										</DataTable.Cell>
+										<DataTable.Cell align="right">
+											{r.durationMin != null ? `${r.durationMin} min` : '—'}
+										</DataTable.Cell>
+										<DataTable.Cell align="right">
+											{pace != null ? formatPace(pace) : '—'}
+										</DataTable.Cell>
+										<DataTable.Cell align="right">
+											{r.speedKmh != null ? `${r.speedKmh} km/h` : '—'}
+										</DataTable.Cell>
+										<DataTable.Cell align="right">
+											{r.kcal != null ? `${r.kcal}` : '—'}
+										</DataTable.Cell>
+										<DataTable.Cell>
+											{r.note ?? '—'}
+										</DataTable.Cell>
+									</DataTable.Row>
+								);
+							})}
+						</DataTable>
+					</Card>
 				</>
 			)}
 		</div>

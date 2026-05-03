@@ -6,6 +6,7 @@ import {DateNavBar} from '../components/log/DateNavBar';
 import {AddEntryCard} from '../components/log/AddEntryCard';
 import {MealSection} from '../components/log/MealSection';
 import {GoalsCard} from '../components/log/GoalsCard';
+import {FavoritesBar} from '../components/log/FavoritesBar';
 import {MacroBar} from '../components/MacroBar';
 import {Card} from '../components/ui/Card';
 import {MEAL_TIMES, type MacroTotals} from '../types/fitness';
@@ -47,6 +48,8 @@ function LogPage() {
 			/>
 
 			<AddEntryCard date={date} />
+
+			<FavoritesBar products={products} date={date} />
 
 			<GoalsCard
 				goals={userGoals}

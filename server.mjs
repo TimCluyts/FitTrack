@@ -61,8 +61,8 @@ function initData() {
 		products: [],
 		recipes: [],
 		userData: {
-			[timId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: []},
-			[davineId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: []}
+			[timId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: []},
+			[davineId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: []}
 		}
 	};
 }
@@ -92,7 +92,8 @@ function migrate(d) {
 			weightEntries: ud.weightEntries ?? [],
 			exercises: ud.exercises ?? [],
 			routines: ud.routines ?? [],
-			workoutLogs: ud.workoutLogs ?? []
+			workoutLogs: ud.workoutLogs ?? [],
+			runLogs: ud.runLogs ?? []
 		};
 	}
 
@@ -104,8 +105,8 @@ function migrate(d) {
 			{id: timId, name: 'Tim'},
 			{id: davineId, name: 'Davine'}
 		];
-		newData.userData[timId] = {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: []};
-		newData.userData[davineId] = {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: []};
+		newData.userData[timId] = {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: []};
+		newData.userData[davineId] = {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: []};
 	}
 
 	return newData;
@@ -143,9 +144,11 @@ function ensureUserData(data, userId) {
 			weightEntries: [],
 			exercises: [],
 			routines: [],
-			workoutLogs: []
+			workoutLogs: [],
+			runLogs: []
 		};
 	}
+	if (!data.userData[userId].runLogs) data.userData[userId].runLogs = [];
 }
 
 function matchPath(pattern, url) {
@@ -459,6 +462,36 @@ async function handleApi(req, res) {
 		const data = readData();
 		ensureUserData(data, params.uid);
 		data.userData[params.uid].workoutLogs = data.userData[params.uid].workoutLogs.filter(l => l.id !== params.id);
+		writeData(data);
+		return json(res, 200, {ok: true});
+	}
+
+	// GET /api/users/:uid/run-logs
+	params = matchPath('/api/users/:uid/run-logs', url);
+	if (method === 'GET' && params) {
+		const data = readData();
+		ensureUserData(data, params.uid);
+		return json(res, 200, data.userData[params.uid].runLogs);
+	}
+
+	// POST /api/users/:uid/run-logs
+	params = matchPath('/api/users/:uid/run-logs', url);
+	if (method === 'POST' && params) {
+		const body = await readBody(req);
+		const data = readData();
+		ensureUserData(data, params.uid);
+		const item = {id: randomUUID(), ...body};
+		data.userData[params.uid].runLogs.push(item);
+		writeData(data);
+		return json(res, 201, item);
+	}
+
+	// DELETE /api/users/:uid/run-logs/:id
+	params = matchPath('/api/users/:uid/run-logs/:id', url);
+	if (method === 'DELETE' && params) {
+		const data = readData();
+		ensureUserData(data, params.uid);
+		data.userData[params.uid].runLogs = data.userData[params.uid].runLogs.filter(r => r.id !== params.id);
 		writeData(data);
 		return json(res, 200, {ok: true});
 	}

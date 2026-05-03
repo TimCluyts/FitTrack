@@ -80,6 +80,18 @@ export function useWorkoutLogger(routine: Routine) {
 		);
 	};
 
+	const exercisePR = (exerciseId: string): number | null => {
+		let max: number | null = null;
+		for (const log of workoutLogs) {
+			const ex = log.exercises.find(e => e.exerciseId === exerciseId);
+			if (!ex) continue;
+			for (const set of ex.sets) {
+				if (max === null || set.weight > max) max = set.weight;
+			}
+		}
+		return max;
+	};
+
 	// Returns the last used weight if in the most recent session all sets hit
 	// targetReps with the same weight — signal to increase load.
 	const progressionHint = (exerciseId: string): number | null => {
@@ -142,6 +154,7 @@ export function useWorkoutLogger(routine: Routine) {
 		removeSet,
 		exerciseName,
 		lastSets,
+		exercisePR,
 		progressionHint,
 		canSave,
 		save

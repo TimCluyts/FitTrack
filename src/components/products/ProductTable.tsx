@@ -9,6 +9,8 @@ interface ProductTableProps {
 	products: Product[];
 	onEdit: (product: Product) => void;
 	onDelete: (id: string) => void;
+	favoriteIds?: string[];
+	onToggleFavorite?: (id: string) => void;
 }
 
 type MacroMode = '100g' | 'serving';
@@ -59,7 +61,7 @@ function MacroToggle({mode, onChange}: {mode: MacroMode; onChange: (m: MacroMode
 	);
 }
 
-export function ProductTable({products, onEdit, onDelete}: ProductTableProps) {
+export function ProductTable({products, onEdit, onDelete, favoriteIds = [], onToggleFavorite}: ProductTableProps) {
 	const [mode, setMode] = useState<MacroMode>('100g');
 
 	if (products.length === 0) return null;
@@ -104,6 +106,22 @@ export function ProductTable({products, onEdit, onDelete}: ProductTableProps) {
 								<DataTable.Cell
 									align="right"
 									style={{whiteSpace: 'nowrap'}}>
+									{onToggleFavorite && (
+										<button
+											onClick={() => onToggleFavorite(p.id)}
+											title={favoriteIds.includes(p.id) ? 'Remove from favorites' : 'Add to favorites'}
+											style={{
+												background: 'none',
+												border: 'none',
+												cursor: 'pointer',
+												fontSize: '16px',
+												padding: '2px 4px',
+												color: favoriteIds.includes(p.id) ? '#d69e2e' : '#cbd5e0',
+												lineHeight: 1
+											}}>
+											★
+										</button>
+									)}{' '}
 									<Button
 										variant="outline"
 										size="sm"

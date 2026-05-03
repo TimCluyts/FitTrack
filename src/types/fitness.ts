@@ -90,3 +90,13 @@ export interface WorkoutLog {
 	routineName: string;
 	exercises: WorkoutExercise[];
 }
+
+export interface RunLog {
+	id: string;
+	date: string;
+	distanceKm: number;
+	durationMin?: number;
+	speedKmh?: number;
+	kcal?: number;
+	note?: string;
+}
