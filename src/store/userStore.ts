@@ -23,6 +23,11 @@ export const useUserStore = create<UserState>()(
 			activeUserId: null,
 
 			setActiveUser: async (id: UserId) => {
+				// Reset to empty first so a new user never sees the previous user's data
+				useLogStore.setState({logEntries: []});
+				useWeightStore.setState({weightEntries: []});
+				useTrainingStore.setState({exercises: [], routines: [], workoutLogs: []});
+
 				useLogStore.persist.setOptions({name: `log-data-${id}`});
 				useWeightStore.persist.setOptions({name: `weight-data-${id}`});
 				useTrainingStore.persist.setOptions({name: `training-data-${id}`});
