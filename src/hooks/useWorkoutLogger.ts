@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {useTrainingStore} from '../store/trainingStore';
+import {useExercises, useWorkoutLogs, useAddWorkoutLog} from './useApi';
 import type {Routine, WorkoutExercise, WorkoutSet} from '../types/fitness';
 
 export interface DraftSet {
@@ -13,7 +13,9 @@ export interface DraftExercise {
 }
 
 export function useWorkoutLogger(routine: Routine) {
-	const {exercises, workoutLogs, addWorkoutLog} = useTrainingStore();
+	const {data: exercises = []} = useExercises();
+	const {data: workoutLogs = []} = useWorkoutLogs();
+	const addWorkoutLog = useAddWorkoutLog();
 
 	const [date, setDate] = useState(
 		() => new Date().toISOString().slice(0, 10)
@@ -96,7 +98,7 @@ export function useWorkoutLogger(routine: Routine) {
 
 		if (!workoutExercises.length) return false;
 
-		addWorkoutLog({
+		addWorkoutLog.mutate({
 			date,
 			routineId: routine.id,
 			routineName: routine.name,

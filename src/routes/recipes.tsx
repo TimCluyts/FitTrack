@@ -1,6 +1,6 @@
 import {createFileRoute} from '@tanstack/react-router';
 import {useState} from 'react';
-import {useNutritionStore} from '../store/nutritionStore';
+import {useRecipes, useAddRecipe, useUpdateRecipe, useDeleteRecipe} from '../hooks/useApi';
 import {RecipeEditor} from '../components/recipes/RecipeEditor';
 import {RecipeCard} from '../components/recipes/RecipeCard';
 import {Button} from '../components/ui/Button';
@@ -13,13 +13,15 @@ export const Route = createFileRoute('/recipes')({
 });
 
 function RecipesPage() {
-	const {recipes, addRecipe, updateRecipe, deleteRecipe} =
-		useNutritionStore();
+	const {data: recipes = []} = useRecipes();
+	const addRecipe = useAddRecipe();
+	const updateRecipe = useUpdateRecipe();
+	const deleteRecipe = useDeleteRecipe();
 	const [editing, setEditing] = useState<'new' | string | null>(null);
 
 	const handleSave = (name: string, ingredients: RecipeIngredient[]) => {
-		if (editing === 'new') addRecipe({name, ingredients});
-		else if (editing) updateRecipe(editing, {name, ingredients});
+		if (editing === 'new') addRecipe.mutate({name, ingredients});
+		else if (editing) updateRecipe.mutate({id: editing, data: {name, ingredients}});
 		setEditing(null);
 	};
 
@@ -76,7 +78,7 @@ function RecipesPage() {
 											`Delete "${recipe.name}"? Log entries using this recipe will also be removed.`
 										)
 									)
-										deleteRecipe(recipe.id);
+										deleteRecipe.mutate(recipe.id);
 								}}
 							/>
 						))}

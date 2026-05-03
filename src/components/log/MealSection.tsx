@@ -2,7 +2,7 @@ import {Card} from '../ui/Card';
 import {Button} from '../ui/Button';
 import {DataTable} from '../ui/DataTable';
 import {MacroInline} from '../MacroInline';
-import {useNutritionStore} from '../../store/nutritionStore';
+import {useProducts, useRecipes} from '../../hooks/useApi';
 import {
 	calcMacros,
 	calcRecipeMacros,
@@ -29,7 +29,8 @@ const COLUMNS = [
 ];
 
 export function MealSection({label, entries, onDelete}: MealSectionProps) {
-	const {products, recipes} = useNutritionStore();
+	const {data: products = []} = useProducts();
+	const {data: recipes = []} = useRecipes();
 	const macros = entries
 		.map(e => getEntryMacros(e, products, recipes))
 		.filter((m): m is MacroTotals => m !== null);

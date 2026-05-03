@@ -1,27 +1,47 @@
 import {useState} from 'react';
 import {Button} from '../ui/Button';
 import {Field} from '../ui/Field';
-import {useTrainingStore} from '../../store/trainingStore';
+import {useExercises, useAddExercise} from '../../hooks/useApi';
 
 interface AddExerciseRowProps {
 	onAdd: (exerciseId: string, targetSets: number, targetReps?: number) => void;
 }
 
 export function AddExerciseRow({onAdd}: AddExerciseRowProps) {
-	const {exercises, findOrCreateExercise} = useTrainingStore();
+	const {data: exercises = []} = useExercises();
+	const addExerciseMutation = useAddExercise();
 	const [name, setName] = useState('');
 	const [sets, setSets] = useState('3');
 	const [reps, setReps] = useState('');
 
-	const handleAdd = () => {
+	const handleAdd = async () => {
 		const trimmed = name.trim();
 		const setsNum = parseInt(sets, 10);
 		if (!trimmed || !setsNum || setsNum <= 0) return;
-		const exerciseId = findOrCreateExercise(trimmed);
-		onAdd(exerciseId, setsNum, reps ? parseInt(reps, 10) : undefined);
-		setName('');
-		setSets('3');
-		setReps('');
+
+		// Find existing exercise by name or create new one
+		const existing = exercises.find(
+			e => e.name.toLowerCase() === trimmed.toLowerCase()
+		);
+
+		if (existing) {
+			onAdd(existing.id, setsNum, reps ? parseInt(reps, 10) : undefined);
+			setName('');
+			setSets('3');
+			setReps('');
+		} else {
+			addExerciseMutation.mutate(
+				{name: trimmed},
+				{
+					onSuccess: (newExercise) => {
+						onAdd(newExercise.id, setsNum, reps ? parseInt(reps, 10) : undefined);
+						setName('');
+						setSets('3');
+						setReps('');
+					}
+				}
+			);
+		}
 	};
 
 	return (

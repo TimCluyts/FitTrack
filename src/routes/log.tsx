@@ -1,6 +1,5 @@
 import {createFileRoute} from '@tanstack/react-router';
-import {useNutritionStore} from '../store/nutritionStore';
-import {useLogStore} from '../store/logStore';
+import {useProducts, useRecipes, useLogEntries, useDeleteLogEntry} from '../hooks/useApi';
 import {getEntryMacros, sumMacros} from '../utils/macros';
 import {useDateNavigation} from '../hooks/useDateNavigation';
 import {DateNavBar} from '../components/log/DateNavBar';
@@ -17,8 +16,10 @@ export const Route = createFileRoute('/log')({
 function LogPage() {
 	const {date, setDate, today, isToday, navigatePrev, navigateNext, label} =
 		useDateNavigation();
-	const {products, recipes} = useNutritionStore();
-	const {logEntries, deleteLogEntry} = useLogStore();
+	const {data: products = []} = useProducts();
+	const {data: recipes = []} = useRecipes();
+	const {data: logEntries = []} = useLogEntries();
+	const deleteLogEntry = useDeleteLogEntry();
 
 	const dayEntries = logEntries.filter(e => e.date === date);
 	const totals = sumMacros(
@@ -51,7 +52,7 @@ function LogPage() {
 						key={meal.value}
 						label={meal.label}
 						entries={entries}
-						onDelete={deleteLogEntry}
+						onDelete={(id) => deleteLogEntry.mutate(id)}
 					/>
 				);
 			})}

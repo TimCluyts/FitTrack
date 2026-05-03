@@ -1,6 +1,6 @@
 import {Button} from '../ui/Button';
 import {AddExerciseRow} from './AddExerciseRow';
-import {useTrainingStore} from '../../store/trainingStore';
+import {useExercises} from '../../hooks/useApi';
 import type {LocalExercise} from '../../hooks/useRoutineEditor';
 
 interface RoutineExerciseTableProps {
@@ -14,7 +14,7 @@ export function RoutineExerciseTable({
 	onAdd,
 	onRemove
 }: RoutineExerciseTableProps) {
-	const {exercises: storeExercises} = useTrainingStore();
+	const {data: storeExercises = []} = useExercises();
 	const exerciseName = (id: string) =>
 		storeExercises.find(e => e.id === id)?.name ?? 'Unknown';
 

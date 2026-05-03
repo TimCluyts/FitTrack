@@ -12,10 +12,7 @@ import {
 	Legend,
 	ResponsiveContainer
 } from 'recharts';
-import {useNutritionStore} from '../store/nutritionStore';
-import {useLogStore} from '../store/logStore';
-import {useWeightStore} from '../store/weightStore';
-import {useTrainingStore} from '../store/trainingStore';
+import {useProducts, useRecipes, useLogEntries, useWeightEntries, useExercises, useWorkoutLogs} from '../hooks/useApi';
 import {getEntryMacros, sumMacros} from '../utils/macros';
 import {Card} from '../components/ui/Card';
 import {DataTable} from '../components/ui/DataTable';
@@ -56,10 +53,12 @@ const WORKOUT_COLS = [
 ];
 
 function ReportPage() {
-	const {products, recipes} = useNutritionStore();
-	const {logEntries} = useLogStore();
-	const {weightEntries} = useWeightStore();
-	const {exercises, workoutLogs} = useTrainingStore();
+	const {data: products = []} = useProducts();
+	const {data: recipes = []} = useRecipes();
+	const {data: logEntries = []} = useLogEntries();
+	const {data: weightEntries = []} = useWeightEntries();
+	const {data: exercises = []} = useExercises();
+	const {data: workoutLogs = []} = useWorkoutLogs();
 
 	// ── Nutrition ──────────────────────────────────────────────────
 	const dayMap = new Map<string, MacroTotals>();

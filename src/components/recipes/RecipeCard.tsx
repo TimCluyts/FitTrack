@@ -1,7 +1,7 @@
 import {Button} from '../ui/Button';
 import {Card} from '../ui/Card';
 import {MacroInline} from '../MacroInline';
-import {useNutritionStore} from '../../store/nutritionStore';
+import {useProducts} from '../../hooks/useApi';
 import {calcRecipeTotalMacros, calcRecipeTotalWeight} from '../../utils/macros';
 import {displayAmount} from '../../utils/serving';
 import type {Recipe} from '../../types/fitness';
@@ -14,7 +14,7 @@ interface RecipeCardProps {
 }
 
 export function RecipeCard({recipe, dimmed, onEdit, onDelete}: RecipeCardProps) {
-	const {products} = useNutritionStore();
+	const {data: products = []} = useProducts();
 	const totalWeight = calcRecipeTotalWeight(recipe);
 	const totals = calcRecipeTotalMacros(recipe, products);
 	const per100g =

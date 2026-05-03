@@ -1,6 +1,14 @@
 import {createFileRoute} from '@tanstack/react-router';
 import {useState} from 'react';
-import {useTrainingStore} from '../store/trainingStore';
+import {
+	useRoutines,
+	useExercises,
+	useWorkoutLogs,
+	useAddRoutine,
+	useUpdateRoutine,
+	useDeleteRoutine,
+	useDeleteWorkoutLog
+} from '../hooks/useApi';
 import {RoutineEditor} from '../components/training/RoutineEditor';
 import {RoutineCard} from '../components/training/RoutineCard';
 import {WorkoutLogger} from '../components/training/WorkoutLogger';
@@ -19,15 +27,13 @@ type Mode =
 	| {view: 'logWorkout'; routineId: string};
 
 function TrainingPage() {
-	const {
-		exercises,
-		routines,
-		workoutLogs,
-		addRoutine,
-		updateRoutine,
-		deleteRoutine,
-		deleteWorkoutLog
-	} = useTrainingStore();
+	const {data: exercises = []} = useExercises();
+	const {data: routines = []} = useRoutines();
+	const {data: workoutLogs = []} = useWorkoutLogs();
+	const addRoutine = useAddRoutine();
+	const updateRoutine = useUpdateRoutine();
+	const deleteRoutine = useDeleteRoutine();
+	const deleteWorkoutLog = useDeleteWorkoutLog();
 
 	const [mode, setMode] = useState<Mode>({view: 'overview'});
 
@@ -37,9 +43,9 @@ function TrainingPage() {
 	) => {
 		if (mode.view !== 'editRoutine') return;
 		if (mode.routineId === 'new') {
-			addRoutine({name, exercises: routineExercises});
+			addRoutine.mutate({name, exercises: routineExercises});
 		} else {
-			updateRoutine(mode.routineId, {name, exercises: routineExercises});
+			updateRoutine.mutate({id: mode.routineId, data: {name, exercises: routineExercises}});
 		}
 		setMode({view: 'overview'});
 	};
@@ -135,7 +141,7 @@ function TrainingPage() {
 										`Delete "${routine.name}"?`
 									)
 								)
-									deleteRoutine(routine.id);
+									deleteRoutine.mutate(routine.id);
 							}}
 						/>
 					))}
@@ -202,7 +208,7 @@ function TrainingPage() {
 									<Button
 										variant="ghost-danger"
 										size="sm"
-										onClick={() => deleteWorkoutLog(log.id)}
+										onClick={() => deleteWorkoutLog.mutate(log.id)}
 										style={{
 											fontSize: '16px',
 											padding: '2px 6px',

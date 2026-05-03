@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {useNutritionStore} from '../store/nutritionStore';
+import {useAddProduct, useUpdateProduct} from './useApi';
 import type {Product} from '../types/fitness';
 
 export type ProductFormData = {
@@ -23,7 +23,8 @@ const empty: ProductFormData = {
 };
 
 export function useProductForm() {
-	const {addProduct, updateProduct} = useNutritionStore();
+	const addProduct = useAddProduct();
+	const updateProduct = useUpdateProduct();
 	const [editId, setEditId] = useState<string | null>(null);
 	const [form, setForm] = useState<ProductFormData>(empty);
 	const [visible, setVisible] = useState(false);
@@ -74,9 +75,9 @@ export function useProductForm() {
 				: {})
 		};
 		if (editId) {
-			updateProduct(editId, data);
+			updateProduct.mutate({id: editId, data});
 		} else {
-			addProduct(data);
+			addProduct.mutate(data);
 		}
 		setEditId(null);
 		setForm(empty);

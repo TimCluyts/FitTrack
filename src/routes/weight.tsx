@@ -9,7 +9,7 @@ import {
 	Tooltip,
 	ResponsiveContainer
 } from 'recharts';
-import {useWeightStore} from '../store/weightStore';
+import {useWeightEntries, useAddWeightEntry, useDeleteWeightEntry} from '../hooks/useApi';
 import {Button} from '../components/ui/Button';
 import {Card} from '../components/ui/Card';
 import {DataTable} from '../components/ui/DataTable';
@@ -36,7 +36,9 @@ const TABLE_COLS = [
 ];
 
 function WeightPage() {
-	const {weightEntries, addWeightEntry, deleteWeightEntry} = useWeightStore();
+	const {data: weightEntries = []} = useWeightEntries();
+	const addWeightEntry = useAddWeightEntry();
+	const deleteWeightEntry = useDeleteWeightEntry();
 	const [date, setDate] = useState(today);
 	const [weight, setWeight] = useState('');
 	const [note, setNote] = useState('');
@@ -44,7 +46,7 @@ function WeightPage() {
 	const handleAdd = () => {
 		const kg = parseFloat(weight);
 		if (!kg || kg <= 0) return;
-		addWeightEntry({date, weight: kg, note: note.trim() || undefined});
+		addWeightEntry.mutate({date, weight: kg, note: note.trim() || undefined});
 		setWeight('');
 		setNote('');
 	};
@@ -186,7 +188,7 @@ function WeightPage() {
 										variant="ghost-danger"
 										size="sm"
 										onClick={() =>
-											deleteWeightEntry(entry.id)
+											deleteWeightEntry.mutate(entry.id)
 										}
 										style={{
 											fontSize: '16px',

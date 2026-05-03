@@ -6,7 +6,8 @@ import {
 	useNavigate
 } from '@tanstack/react-router';
 import {useState} from 'react';
-import {useUserStore, USERS} from '../store/userStore';
+import {useUserStore} from '../store/userStore';
+import {useUsers} from '../hooks/useApi';
 import {useIsMobile} from '../hooks/useIsMobile';
 
 export const Route = createRootRoute({
@@ -81,9 +82,10 @@ function MobileNavLink({
 function UserBadge({compact}: {compact?: boolean}) {
 	const navigate = useNavigate();
 	const {activeUserId, clearActiveUser} = useUserStore();
+	const {data: users = []} = useUsers();
 	if (!activeUserId) return null;
 
-	const name = USERS.find(u => u.id === activeUserId)?.name ?? activeUserId;
+	const name = users.find(u => u.id === activeUserId)?.name ?? '?';
 
 	const handleSwitch = () => {
 		clearActiveUser();

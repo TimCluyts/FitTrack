@@ -3,14 +3,14 @@ import {Button} from '../ui/Button';
 import {DataTable} from '../ui/DataTable';
 import {Field} from '../ui/Field';
 import {IngredientAmountInput} from '../ServingInput';
-import {useNutritionStore} from '../../store/nutritionStore';
+import {useProducts} from '../../hooks/useApi';
 
 interface AddIngredientRowProps {
 	onAdd: (productId: string, amount: string) => void;
 }
 
 export function AddIngredientRow({onAdd}: AddIngredientRowProps) {
-	const {products} = useNutritionStore();
+	const {data: products = []} = useProducts();
 	const [productId, setProductId] = useState('');
 	const [amount, setAmount] = useState('');
 	const activeProduct = products.find(p => p.id === productId);

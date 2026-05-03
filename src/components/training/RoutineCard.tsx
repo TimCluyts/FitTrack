@@ -1,6 +1,6 @@
 import {Button} from '../ui/Button';
 import {Card} from '../ui/Card';
-import {useTrainingStore} from '../../store/trainingStore';
+import {useExercises} from '../../hooks/useApi';
 import type {Routine} from '../../types/fitness';
 
 interface RoutineCardProps {
@@ -18,7 +18,7 @@ export function RoutineCard({
 	onDelete,
 	onStart
 }: RoutineCardProps) {
-	const {exercises} = useTrainingStore();
+	const {data: exercises = []} = useExercises();
 
 	const exerciseLines = routine.exercises.map(re => {
 		const name = exercises.find(e => e.id === re.exerciseId)?.name ?? 'Unknown';

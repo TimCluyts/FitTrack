@@ -3,7 +3,7 @@ import {DataTable} from '../ui/DataTable';
 import {AddIngredientRow} from './AddIngredientRow';
 import {calcMacros} from '../../utils/macros';
 import {displayAmount} from '../../utils/serving';
-import {useNutritionStore} from '../../store/nutritionStore';
+import {useProducts} from '../../hooks/useApi';
 import type {RecipeIngredient} from '../../types/fitness';
 
 interface IngredientTableProps {
@@ -23,7 +23,7 @@ const COLUMNS = [
 ];
 
 export function IngredientTable({ingredients, onAdd, onRemove}: IngredientTableProps) {
-	const {products} = useNutritionStore();
+	const {data: products = []} = useProducts();
 
 	return (
 		<DataTable columns={COLUMNS} minWidth={520}>

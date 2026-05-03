@@ -87,7 +87,8 @@ module.exports = (_, {mode} = {}) => {
 			historyApiFallback: {
 				index: '/index.html',
 				disableDotRule: true
-			}
+			},
+			proxy: [{context: ['/api'], target: 'http://localhost:3001'}]
 		}
 	};
 };

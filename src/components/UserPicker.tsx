@@ -1,11 +1,6 @@
-import {useUserStore, USERS} from '../store/userStore';
-import type {UserId} from '../store/userStore';
+import type {User} from '../store/userStore';
 
-interface UserPickerProps {
-	onSelect: (id: UserId) => void;
-}
-
-export function UserPicker({onSelect}: UserPickerProps) {
+export function UserPicker({users, onSelect}: {users: User[]; onSelect: (id: string) => void}) {
 	return (
 		<div
 			style={{
@@ -43,7 +38,7 @@ export function UserPicker({onSelect}: UserPickerProps) {
 					flexWrap: 'wrap',
 					justifyContent: 'center'
 				}}>
-				{USERS.map(user => (
+				{users.map(user => (
 					<button
 						key={user.id}
 						onClick={() => onSelect(user.id)}
@@ -101,6 +96,3 @@ export function UserPicker({onSelect}: UserPickerProps) {
 		</div>
 	);
 }
-
-// Re-export so callers don't need to import separately
-export {useUserStore, USERS};

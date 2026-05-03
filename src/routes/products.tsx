@@ -1,9 +1,6 @@
 import {createFileRoute} from '@tanstack/react-router';
 import {useState} from 'react';
-import {useNutritionStore} from '../store/nutritionStore';
-import {useLogStore} from '../store/logStore';
-import {useWeightStore} from '../store/weightStore';
-import {useTrainingStore} from '../store/trainingStore';
+import {useProducts, useDeleteProduct} from '../hooks/useApi';
 import {useProductForm} from '../hooks/useProductForm';
 import {ProductForm} from '../components/products/ProductForm';
 import {ProductTable} from '../components/products/ProductTable';
@@ -11,17 +8,15 @@ import {Button} from '../components/ui/Button';
 import {Card} from '../components/ui/Card';
 import {Field} from '../components/ui/Field';
 import {PageHeader} from '../components/ui/PageHeader';
-import {exportData, exportServerData, importFromFile, importServerData} from '../utils/backup';
+import {exportServerData, importServerData} from '../utils/backup';
 
 export const Route = createFileRoute('/products')({
 	component: ProductsPage
 });
 
 function ProductsPage() {
-	const {products, deleteProduct, importData: importNutrition} = useNutritionStore();
-	const {importData: importLog} = useLogStore();
-	const {importData: importWeight} = useWeightStore();
-	const {importData: importTraining} = useTrainingStore();
+	const {data: products = []} = useProducts();
+	const deleteProduct = useDeleteProduct();
 	const form = useProductForm();
 	const [search, setSearch] = useState('');
 
@@ -29,42 +24,14 @@ function ProductsPage() {
 		p.name.toLowerCase().includes(search.toLowerCase())
 	);
 
-	const handleImport = () =>
-		importFromFile(data => {
-			if (!confirm('This will replace all current data. Continue?')) return;
-			importNutrition({products: data.products, recipes: data.recipes});
-			if (data.logEntries) importLog({logEntries: data.logEntries});
-			if (data.weightEntries) importWeight({weightEntries: data.weightEntries});
-			if (data.exercises)
-				importTraining({
-					exercises: data.exercises,
-					routines: data.routines ?? [],
-					workoutLogs: data.workoutLogs ?? []
-				});
-		});
-
 	return (
 		<div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
 			<PageHeader title="Products">
-				<Button variant="outline" onClick={exportData}>
+				<Button variant="outline" onClick={exportServerData}>
 					Export Backup
 				</Button>
-				<Button variant="outline" onClick={handleImport}>
-					Import Backup
-				</Button>
-				<span
-					style={{
-						width: '1px',
-						height: '20px',
-						background: '#e2e8f0',
-						alignSelf: 'center'
-					}}
-				/>
-				<Button variant="outline" onClick={exportServerData}>
-					Export Full Store
-				</Button>
 				<Button variant="outline" onClick={importServerData}>
-					Import Full Store
+					Import Backup
 				</Button>
 				{!form.visible && (
 					<Button onClick={form.open}>+ Add Product</Button>
@@ -95,7 +62,7 @@ function ProductsPage() {
 					<ProductTable
 						products={filtered}
 						onEdit={form.edit}
-						onDelete={deleteProduct}
+						onDelete={(id) => deleteProduct.mutate(id)}
 					/>
 				) : (
 					<div

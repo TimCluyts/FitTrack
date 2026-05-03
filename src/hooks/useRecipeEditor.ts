@@ -1,11 +1,11 @@
 import {useState} from 'react';
-import {useNutritionStore} from '../store/nutritionStore';
+import {useProducts} from './useApi';
 import {calcMacros, calcRecipeTotalWeight, sumMacros} from '../utils/macros';
 import {toGrams} from '../utils/serving';
 import type {Recipe, RecipeIngredient} from '../types/fitness';
 
 export function useRecipeEditor(initial?: Recipe) {
-	const {products} = useNutritionStore();
+	const {data: products = []} = useProducts();
 	const [name, setName] = useState(initial?.name ?? '');
 	const [ingredients, setIngredients] = useState<RecipeIngredient[]>(
 		initial?.ingredients ?? []
