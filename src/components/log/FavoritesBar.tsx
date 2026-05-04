@@ -1,5 +1,5 @@
 import {useMemo, useState} from 'react';
-import {useAddLogEntry, useFavorites, useToggleFavorite} from '../../hooks/useApi';
+import {useAddLogEntry, useFavorites, useToggleFavorite, useProducts} from '../../hooks/useApi';
 import {IngredientAmountInput} from '../ServingInput';
 import {MealSelect} from './MealSelect';
 import {Button} from '../ui/Button';
@@ -7,7 +7,6 @@ import {toGrams} from '../../utils/serving';
 import type {MealTime, Product} from '../../types/fitness';
 
 interface FavoritesBarProps {
-	products: Product[];
 	date: string;
 }
 
@@ -125,7 +124,8 @@ function FavoriteChip({product, date, onRemove}: ChipProps) {
 	);
 }
 
-export function FavoritesBar({products, date}: FavoritesBarProps) {
+export function FavoritesBar({date}: FavoritesBarProps) {
+	const {data: products = []} = useProducts();
 	const {data: favoriteIds = []} = useFavorites();
 	const toggleFavorite = useToggleFavorite();
 	const favoriteProducts = useMemo(

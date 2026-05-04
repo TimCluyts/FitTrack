@@ -1,6 +1,20 @@
-import type {User} from '../store/userStore';
+import {useNavigate} from '@tanstack/react-router';
+import {useUserStore} from '../store/userStore';
+import {useUsers} from '../hooks/useApi';
 
-export function UserPicker({users, onSelect}: {users: User[]; onSelect: (id: string) => void}) {
+export function UserPicker() {
+	const navigate = useNavigate();
+	const {setActiveUserId} = useUserStore();
+	const {data: users = [], isLoading} = useUsers();
+
+	if (isLoading) {
+		return (
+			<div style={{textAlign: 'center', padding: '60px', color: '#718096'}}>
+				Loading…
+			</div>
+		);
+	}
+
 	return (
 		<div
 			style={{
@@ -21,12 +35,7 @@ export function UserPicker({users, onSelect}: {users: User[]; onSelect: (id: str
 					}}>
 					Who's logging today?
 				</div>
-				<div
-					style={{
-						fontSize: '14px',
-						color: '#718096',
-						textAlign: 'center'
-					}}>
+				<div style={{fontSize: '14px', color: '#718096', textAlign: 'center'}}>
 					Products and recipes are shared between profiles.
 				</div>
 			</div>
@@ -41,7 +50,10 @@ export function UserPicker({users, onSelect}: {users: User[]; onSelect: (id: str
 				{users.map(user => (
 					<button
 						key={user.id}
-						onClick={() => onSelect(user.id)}
+						onClick={() => {
+							setActiveUserId(user.id);
+							navigate({to: '/log'});
+						}}
 						style={{
 							background: 'white',
 							border: '2px solid #e8f0e9',
@@ -83,11 +95,7 @@ export function UserPicker({users, onSelect}: {users: User[]; onSelect: (id: str
 							{user.name[0]}
 						</div>
 						<div
-							style={{
-								fontSize: '18px',
-								fontWeight: 600,
-								color: '#1b4332'
-							}}>
+							style={{fontSize: '18px', fontWeight: 600, color: '#1b4332'}}>
 							{user.name}
 						</div>
 					</button>

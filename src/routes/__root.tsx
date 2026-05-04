@@ -1,145 +1,13 @@
-import {
-	createRootRoute,
-	Link,
-	Outlet,
-	useMatchRoute,
-	useNavigate
-} from '@tanstack/react-router';
+import {createRootRoute, Link, Outlet} from '@tanstack/react-router';
 import {useState} from 'react';
 import {useUserStore} from '../store/userStore';
-import {useUsers} from '../hooks/useApi';
 import {useIsMobile} from '../hooks/useIsMobile';
+import {NavLink, MobileNavLink} from '../components/layout/NavLink';
+import {UserBadge} from '../components/layout/UserBadge';
 
 export const Route = createRootRoute({
 	component: RootLayout
 });
-
-function NavLink({
-	to,
-	children,
-	onClick
-}: {
-	to: string;
-	children: string;
-	onClick?: () => void;
-}) {
-	const matchRoute = useMatchRoute();
-	const isActive = !!matchRoute({to});
-	return (
-		<Link
-			to={to}
-			onClick={onClick}
-			style={{
-				color: 'white',
-				textDecoration: 'none',
-				padding: '8px 18px',
-				borderRadius: '6px',
-				fontWeight: isActive ? 600 : 400,
-				backgroundColor: isActive
-					? 'rgba(255,255,255,0.2)'
-					: 'transparent',
-				fontSize: '14px',
-				transition: 'background 0.15s'
-			}}>
-			{children}
-		</Link>
-	);
-}
-
-function MobileNavLink({
-	to,
-	children,
-	onClick
-}: {
-	to: string;
-	children: string;
-	onClick: () => void;
-}) {
-	const matchRoute = useMatchRoute();
-	const isActive = !!matchRoute({to});
-	return (
-		<Link
-			to={to}
-			onClick={onClick}
-			style={{
-				color: 'white',
-				textDecoration: 'none',
-				padding: '12px 16px',
-				borderRadius: '6px',
-				fontWeight: isActive ? 600 : 400,
-				backgroundColor: isActive
-					? 'rgba(255,255,255,0.2)'
-					: 'transparent',
-				fontSize: '15px',
-				display: 'block',
-				transition: 'background 0.15s'
-			}}>
-			{children}
-		</Link>
-	);
-}
-
-function UserBadge({compact}: {compact?: boolean}) {
-	const navigate = useNavigate();
-	const {activeUserId, clearActiveUser} = useUserStore();
-	const {data: users = []} = useUsers();
-	if (!activeUserId) return null;
-
-	const name = users.find(u => u.id === activeUserId)?.name ?? '?';
-
-	const handleSwitch = () => {
-		clearActiveUser();
-		navigate({to: '/'});
-	};
-
-	return (
-		<div
-			style={{
-				display: 'flex',
-				alignItems: 'center',
-				gap: '8px',
-				marginLeft: compact ? '0' : '12px',
-				paddingLeft: compact ? '0' : '12px',
-				borderLeft: compact ? 'none' : '1px solid rgba(255,255,255,0.25)'
-			}}>
-			<div
-				style={{
-					width: '28px',
-					height: '28px',
-					borderRadius: '50%',
-					background: 'rgba(255,255,255,0.25)',
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-					color: 'white',
-					fontSize: '13px',
-					fontWeight: 700,
-					flexShrink: 0
-				}}>
-				{name[0]}
-			</div>
-			{!compact && (
-				<span style={{color: 'white', fontSize: '14px', fontWeight: 500}}>
-					{name}
-				</span>
-			)}
-			<button
-				onClick={handleSwitch}
-				style={{
-					background: 'rgba(255,255,255,0.15)',
-					border: 'none',
-					borderRadius: '4px',
-					color: 'rgba(255,255,255,0.8)',
-					fontSize: '12px',
-					padding: '3px 8px',
-					cursor: 'pointer',
-					whiteSpace: 'nowrap'
-				}}>
-				switch
-			</button>
-		</div>
-	);
-}
 
 function RootLayout() {
 	const {activeUserId} = useUserStore();
@@ -165,7 +33,6 @@ function RootLayout() {
 						margin: '0 auto',
 						padding: '0 16px'
 					}}>
-					{/* Header row — always visible */}
 					<div
 						style={{
 							height: '52px',
@@ -237,7 +104,6 @@ function RootLayout() {
 						)}
 					</div>
 
-					{/* Mobile dropdown */}
 					{isMobile && menuOpen && (
 						<div
 							style={{
@@ -252,9 +118,7 @@ function RootLayout() {
 									<MobileNavLink to="/weight" onClick={closeMenu}>
 										Weight
 									</MobileNavLink>
-									<MobileNavLink
-										to="/training"
-										onClick={closeMenu}>
+									<MobileNavLink to="/training" onClick={closeMenu}>
 										Training
 									</MobileNavLink>
 									<MobileNavLink to="/report" onClick={closeMenu}>

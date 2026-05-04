@@ -1,13 +1,9 @@
 import {useState} from 'react';
+import {useGoals, useSetGoals} from '../../hooks/useApi';
 import {Card} from '../ui/Card';
 import {Button} from '../ui/Button';
 import {Field} from '../ui/Field';
 import type {DailyGoals} from '../../types/fitness';
-
-interface GoalsCardProps {
-	goals?: DailyGoals;
-	onSave: (goals: DailyGoals) => void;
-}
 
 function Chip({children}: {children: React.ReactNode}) {
 	return (
@@ -24,14 +20,16 @@ function Chip({children}: {children: React.ReactNode}) {
 	);
 }
 
-export function GoalsCard({goals, onSave}: GoalsCardProps) {
+export function GoalsCard() {
+	const {data: goals} = useGoals();
+	const setGoalsMutation = useSetGoals();
 	const [editing, setEditing] = useState(false);
-	const [draft, setDraft] = useState<DailyGoals>(goals ?? {});
+	const [draft, setDraft] = useState<DailyGoals>({});
 
 	const hasGoals = goals && Object.values(goals).some(v => v != null);
 
 	const handleSave = () => {
-		onSave(draft);
+		setGoalsMutation.mutate(draft);
 		setEditing(false);
 	};
 
