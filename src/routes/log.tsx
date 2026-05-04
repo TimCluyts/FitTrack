@@ -1,5 +1,5 @@
 import {createFileRoute} from '@tanstack/react-router';
-import {useProducts, useRecipes, useLogEntries, useDeleteLogEntry} from '../hooks/useApi';
+import {useProducts, useRecipes, useLogEntries, useDeleteLogEntry, useGoals, useSetGoals} from '../hooks/useApi';
 import {getEntryMacros, sumMacros} from '../utils/macros';
 import {useDateNavigation} from '../hooks/useDateNavigation';
 import {DateNavBar} from '../components/log/DateNavBar';
@@ -10,8 +10,6 @@ import {FavoritesBar} from '../components/log/FavoritesBar';
 import {MacroBar} from '../components/MacroBar';
 import {Card} from '../components/ui/Card';
 import {MEAL_TIMES, type MacroTotals} from '../types/fitness';
-import {useGoalsStore} from '../store/goalsStore';
-import {useUserStore} from '../store/userStore';
 
 export const Route = createFileRoute('/log')({
 	component: LogPage
@@ -24,9 +22,8 @@ function LogPage() {
 	const {data: recipes = []} = useRecipes();
 	const {data: logEntries = []} = useLogEntries();
 	const deleteLogEntry = useDeleteLogEntry();
-	const activeUserId = useUserStore(s => s.activeUserId);
-	const {goals, setGoals} = useGoalsStore();
-	const userGoals = activeUserId ? goals[activeUserId] : undefined;
+	const {data: userGoals} = useGoals();
+	const setGoals = useSetGoals();
 
 	const dayEntries = logEntries.filter(e => e.date === date);
 	const totals = sumMacros(
@@ -53,7 +50,7 @@ function LogPage() {
 
 			<GoalsCard
 				goals={userGoals}
-				onSave={g => activeUserId && setGoals(activeUserId, g)}
+				onSave={g => setGoals.mutate(g)}
 			/>
 
 			{MEAL_TIMES.map(meal => {

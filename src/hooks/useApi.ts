@@ -189,3 +189,35 @@ export const useDeleteRunLog = () => {
 		onSuccess: () => qc.invalidateQueries({queryKey: ['runLogs', uid]})
 	});
 };
+
+export const useGoals = () => {
+	const uid = useUid();
+	return useQuery({queryKey: ['goals', uid], queryFn: () => api.getGoals(uid!), enabled: !!uid});
+};
+export const useSetGoals = () => {
+	const qc = useQueryClient();
+	const uid = useUid();
+	return useMutation({
+		mutationFn: (goals: import('../types/fitness').DailyGoals) => api.setGoals(uid!, goals),
+		onSuccess: () => qc.invalidateQueries({queryKey: ['goals', uid]})
+	});
+};
+
+export const useFavorites = () => {
+	const uid = useUid();
+	return useQuery({queryKey: ['favorites', uid], queryFn: () => api.getFavorites(uid!), enabled: !!uid});
+};
+export const useToggleFavorite = () => {
+	const qc = useQueryClient();
+	const uid = useUid();
+	return useMutation({
+		mutationFn: (productId: string) => {
+			const current: string[] = qc.getQueryData(['favorites', uid]) ?? [];
+			const next = current.includes(productId)
+				? current.filter(id => id !== productId)
+				: [...current, productId];
+			return api.setFavorites(uid!, next);
+		},
+		onSuccess: () => qc.invalidateQueries({queryKey: ['favorites', uid]})
+	});
+};

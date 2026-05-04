@@ -61,8 +61,8 @@ function initData() {
 		products: [],
 		recipes: [],
 		userData: {
-			[timId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: []},
-			[davineId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: []}
+			[timId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []},
+			[davineId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []}
 		}
 	};
 }
@@ -93,7 +93,9 @@ function migrate(d) {
 			exercises: ud.exercises ?? [],
 			routines: ud.routines ?? [],
 			workoutLogs: ud.workoutLogs ?? [],
-			runLogs: ud.runLogs ?? []
+			runLogs: ud.runLogs ?? [],
+			goals: ud.goals ?? {},
+			favorites: ud.favorites ?? []
 		};
 	}
 
@@ -105,8 +107,8 @@ function migrate(d) {
 			{id: timId, name: 'Tim'},
 			{id: davineId, name: 'Davine'}
 		];
-		newData.userData[timId] = {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: []};
-		newData.userData[davineId] = {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: []};
+		newData.userData[timId] = {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []};
+		newData.userData[davineId] = {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []};
 	}
 
 	return newData;
@@ -149,6 +151,8 @@ function ensureUserData(data, userId) {
 		};
 	}
 	if (!data.userData[userId].runLogs) data.userData[userId].runLogs = [];
+	if (!data.userData[userId].goals) data.userData[userId].goals = {};
+	if (!data.userData[userId].favorites) data.userData[userId].favorites = [];
 }
 
 function matchPath(pattern, url) {
@@ -494,6 +498,44 @@ async function handleApi(req, res) {
 		data.userData[params.uid].runLogs = data.userData[params.uid].runLogs.filter(r => r.id !== params.id);
 		writeData(data);
 		return json(res, 200, {ok: true});
+	}
+
+	// GET /api/users/:uid/goals
+	params = matchPath('/api/users/:uid/goals', url);
+	if (method === 'GET' && params) {
+		const data = readData();
+		ensureUserData(data, params.uid);
+		return json(res, 200, data.userData[params.uid].goals);
+	}
+
+	// PUT /api/users/:uid/goals
+	params = matchPath('/api/users/:uid/goals', url);
+	if (method === 'PUT' && params) {
+		const body = await readBody(req);
+		const data = readData();
+		ensureUserData(data, params.uid);
+		data.userData[params.uid].goals = body;
+		writeData(data);
+		return json(res, 200, data.userData[params.uid].goals);
+	}
+
+	// GET /api/users/:uid/favorites
+	params = matchPath('/api/users/:uid/favorites', url);
+	if (method === 'GET' && params) {
+		const data = readData();
+		ensureUserData(data, params.uid);
+		return json(res, 200, data.userData[params.uid].favorites);
+	}
+
+	// PUT /api/users/:uid/favorites
+	params = matchPath('/api/users/:uid/favorites', url);
+	if (method === 'PUT' && params) {
+		const body = await readBody(req);
+		const data = readData();
+		ensureUserData(data, params.uid);
+		data.userData[params.uid].favorites = body;
+		writeData(data);
+		return json(res, 200, data.userData[params.uid].favorites);
 	}
 
 	// GET /api/store

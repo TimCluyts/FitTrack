@@ -2,7 +2,7 @@ import {useState} from 'react';
 import {Card} from '../ui/Card';
 import {Button} from '../ui/Button';
 import {Field} from '../ui/Field';
-import type {DailyGoals} from '../../store/goalsStore';
+import type {DailyGoals} from '../../types/fitness';
 
 interface GoalsCardProps {
 	goals?: DailyGoals;

@@ -1,7 +1,5 @@
 import {useMemo, useState} from 'react';
-import {useAddLogEntry} from '../../hooks/useApi';
-import {useFavoritesStore} from '../../store/favoritesStore';
-import {useUserStore} from '../../store/userStore';
+import {useAddLogEntry, useFavorites, useToggleFavorite} from '../../hooks/useApi';
 import {IngredientAmountInput} from '../ServingInput';
 import {MealSelect} from './MealSelect';
 import {Button} from '../ui/Button';
@@ -128,9 +126,8 @@ function FavoriteChip({product, date, onRemove}: ChipProps) {
 }
 
 export function FavoritesBar({products, date}: FavoritesBarProps) {
-	const activeUserId = useUserStore(s => s.activeUserId);
-	const {favorites, toggleFavorite} = useFavoritesStore();
-	const favoriteIds = activeUserId ? (favorites[activeUserId] ?? []) : [];
+	const {data: favoriteIds = []} = useFavorites();
+	const toggleFavorite = useToggleFavorite();
 	const favoriteProducts = useMemo(
 		() =>
 			favoriteIds
@@ -139,7 +136,7 @@ export function FavoritesBar({products, date}: FavoritesBarProps) {
 		[favoriteIds, products]
 	);
 
-	if (!favoriteProducts.length || !activeUserId) return null;
+	if (!favoriteProducts.length) return null;
 
 	return (
 		<div>
@@ -160,7 +157,7 @@ export function FavoritesBar({products, date}: FavoritesBarProps) {
 						key={p.id}
 						product={p}
 						date={date}
-						onRemove={() => toggleFavorite(activeUserId, p.id)}
+						onRemove={() => toggleFavorite.mutate(p.id)}
 					/>
 				))}
 			</div>

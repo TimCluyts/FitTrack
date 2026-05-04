@@ -100,3 +100,11 @@ export interface RunLog {
 	kcal?: number;
 	note?: string;
 }
+
+export interface DailyGoals {
+	kcalMin?: number;
+	kcalMax?: number;
+	protein?: number;
+	fat?: number;
+	carbs?: number;
+}

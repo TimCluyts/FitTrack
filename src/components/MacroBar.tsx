@@ -1,5 +1,4 @@
-import type {MacroTotals} from '../types/fitness';
-import type {DailyGoals} from '../store/goalsStore';
+import type {DailyGoals, MacroTotals} from '../types/fitness';
 
 function kcalColor(v: number, g?: DailyGoals): string {
 	if (!g?.kcalMin && !g?.kcalMax) return 'white';

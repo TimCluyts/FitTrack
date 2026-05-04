@@ -1,6 +1,6 @@
 import {createFileRoute} from '@tanstack/react-router';
 import {useState} from 'react';
-import {useProducts, useDeleteProduct} from '../hooks/useApi';
+import {useProducts, useDeleteProduct, useFavorites, useToggleFavorite} from '../hooks/useApi';
 import {useProductForm} from '../hooks/useProductForm';
 import {ProductForm} from '../components/products/ProductForm';
 import {ProductTable} from '../components/products/ProductTable';
@@ -9,8 +9,6 @@ import {Card} from '../components/ui/Card';
 import {Field} from '../components/ui/Field';
 import {PageHeader} from '../components/ui/PageHeader';
 import {exportServerData, importServerData} from '../utils/backup';
-import {useFavoritesStore} from '../store/favoritesStore';
-import {useUserStore} from '../store/userStore';
 
 export const Route = createFileRoute('/products')({
 	component: ProductsPage
@@ -21,9 +19,8 @@ function ProductsPage() {
 	const deleteProduct = useDeleteProduct();
 	const form = useProductForm();
 	const [search, setSearch] = useState('');
-	const activeUserId = useUserStore(s => s.activeUserId);
-	const {favorites, toggleFavorite} = useFavoritesStore();
-	const favoriteIds = activeUserId ? (favorites[activeUserId] ?? []) : [];
+	const {data: favoriteIds = []} = useFavorites();
+	const toggleFavorite = useToggleFavorite();
 
 	const filtered = [...products].filter(p =>
 		p.name.toLowerCase().includes(search.toLowerCase())
@@ -69,7 +66,7 @@ function ProductsPage() {
 						onEdit={form.edit}
 						onDelete={(id) => deleteProduct.mutate(id)}
 						favoriteIds={favoriteIds}
-						onToggleFavorite={activeUserId ? (id) => toggleFavorite(activeUserId, id) : undefined}
+						onToggleFavorite={(id) => toggleFavorite.mutate(id)}
 					/>
 				) : (
 					<div

@@ -1,4 +1,4 @@
-import type {Exercise, LogEntry, Product, Recipe, Routine, RunLog, WeightEntry, WorkoutLog} from '../types/fitness';
+import type {DailyGoals, Exercise, LogEntry, Product, Recipe, Routine, RunLog, WeightEntry, WorkoutLog} from '../types/fitness';
 import type {User} from '../store/userStore';
 
 const BASE = '/api';
@@ -56,4 +56,10 @@ export const api = {
 	getRunLogs: (uid: string) => apiFetch<RunLog[]>(`/users/${uid}/run-logs`),
 	addRunLog: (uid: string, d: Omit<RunLog, 'id'>) => post(`/users/${uid}/run-logs`, d) as Promise<RunLog>,
 	deleteRunLog: (uid: string, id: string) => del(`/users/${uid}/run-logs/${id}`),
+
+	getGoals: (uid: string) => apiFetch<DailyGoals>(`/users/${uid}/goals`),
+	setGoals: (uid: string, goals: DailyGoals) => put(`/users/${uid}/goals`, goals) as Promise<DailyGoals>,
+
+	getFavorites: (uid: string) => apiFetch<string[]>(`/users/${uid}/favorites`),
+	setFavorites: (uid: string, ids: string[]) => put(`/users/${uid}/favorites`, ids) as Promise<string[]>,
 };
