@@ -1,5 +1,6 @@
 import {useMemo} from 'react';
 import {useRunLogs, useDeleteRunLog} from '../../hooks/useApi';
+import {calcPRDistance, calcPRSpeed, calcPRPace} from '../../utils/runStats';
 import {RunLogCard} from './RunLogCard';
 import {RunRecordsCard} from './RunRecordsCard';
 import {SECTION_LABEL} from './styles';
@@ -13,21 +14,9 @@ export function RunHistorySection() {
 		[runLogs]
 	);
 
-	const {prDistance, prSpeed, prPaceVal} = useMemo(() => {
-		let prDistance: number | null = null;
-		let prSpeed: number | null = null;
-		let prPaceVal: number | null = null;
-		for (const r of runLogs) {
-			if (prDistance === null || r.distanceKm > prDistance) prDistance = r.distanceKm;
-			if (r.speedKmh != null && (prSpeed === null || r.speedKmh > prSpeed))
-				prSpeed = r.speedKmh;
-			if (r.durationMin != null && r.distanceKm > 0) {
-				const pace = r.durationMin / r.distanceKm;
-				if (prPaceVal === null || pace < prPaceVal) prPaceVal = pace;
-			}
-		}
-		return {prDistance, prSpeed, prPaceVal};
-	}, [runLogs]);
+	const prDistance = useMemo(() => calcPRDistance(runLogs), [runLogs]);
+	const prSpeed = useMemo(() => calcPRSpeed(runLogs), [runLogs]);
+	const prPaceVal = useMemo(() => calcPRPace(runLogs), [runLogs]);
 
 	const hasRunRecords = prDistance != null || prSpeed != null || prPaceVal != null;
 

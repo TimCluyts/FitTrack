@@ -1,16 +1,8 @@
 import {formatPace} from '../../utils/pace';
 import {Button} from '../ui/Button';
 import {Card} from '../ui/Card';
+import {PrBadge} from '../ui/PrBadge';
 import type {RunLog} from '../../types/fitness';
-
-const PR_BADGE = {
-	fontSize: '11px',
-	background: '#fffbeb',
-	color: '#92400e',
-	border: '1px solid #fde68a',
-	borderRadius: '4px',
-	fontWeight: 700
-} as const;
 
 interface RunLogCardProps {
 	log: RunLog;
@@ -52,11 +44,7 @@ export function RunLogCard({log, onDelete, prDistance, prSpeed, prPaceVal}: RunL
 						}}>
 						{log.distanceKm} km
 						{isPRDist && (
-							<span
-								title="Personal record distance"
-								style={{...PR_BADGE, padding: '1px 6px'}}>
-								🏆 PR afstand
-							</span>
+							<PrBadge label="🏆 PR afstand" title="Personal record distance" />
 						)}
 					</div>
 					<div
@@ -73,37 +61,15 @@ export function RunLogCard({log, onDelete, prDistance, prSpeed, prPaceVal}: RunL
 							<span>· {log.durationMin} min</span>
 						)}
 						{log.speedKmh != null && (
-							<span
-								style={{
-									display: 'flex',
-									alignItems: 'center',
-									gap: '4px'
-								}}>
+							<span style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
 								· {log.speedKmh} km/h
-								{isPRSpeed && (
-									<span
-										title="Personal record speed"
-										style={{...PR_BADGE, padding: '1px 5px'}}>
-										🏆 PR
-									</span>
-								)}
+								{isPRSpeed && <PrBadge title="Personal record speed" />}
 							</span>
 						)}
 						{pace != null && (
-							<span
-								style={{
-									display: 'flex',
-									alignItems: 'center',
-									gap: '4px'
-								}}>
+							<span style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
 								· {formatPace(pace)}
-								{isPRPace && (
-									<span
-										title="Personal record pace"
-										style={{...PR_BADGE, padding: '1px 5px'}}>
-										🏆 PR
-									</span>
-								)}
+								{isPRPace && <PrBadge title="Personal record pace" />}
 							</span>
 						)}
 						{log.kcal != null && <span>· {log.kcal} kcal</span>}
