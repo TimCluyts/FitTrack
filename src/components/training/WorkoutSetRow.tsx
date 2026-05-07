@@ -1,6 +1,6 @@
 import {Button} from '../ui/Button';
 import {Field} from '../ui/Field';
-import type {DraftSet} from '../../hooks/useWorkoutLogger';
+import type {DraftSet} from '../../types/fitness';
 
 interface WorkoutSetRowProps {
 	index: number;

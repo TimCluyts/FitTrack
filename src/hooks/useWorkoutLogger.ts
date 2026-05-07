@@ -1,37 +1,40 @@
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useExercises, useWorkoutLogs, useAddWorkoutLog} from './useApi';
-import type {Routine, WorkoutExercise, WorkoutLog, WorkoutSet} from '../types/fitness';
+import {useActiveSessionStore} from '../store/activeSessionStore';
+import type {DraftExercise, Routine, WorkoutExercise, WorkoutLog, WorkoutSet} from '../types/fitness';
 
-export interface DraftSet {
-	weight: string;
-	reps: string;
-}
-
-export interface DraftExercise {
-	exerciseId: string;
-	sets: DraftSet[];
-}
+export type {DraftExercise} from '../types/fitness';
+export type {DraftSet} from '../types/fitness';
 
 export function useWorkoutLogger(routine: Routine) {
 	const {data: exercises = []} = useExercises();
 	const {data: workoutLogs = []} = useWorkoutLogs();
 	const addWorkoutLog = useAddWorkoutLog();
+	const {session, updateSession, clearSession} = useActiveSessionStore();
 
-	const [date, setDate] = useState(() =>
-		new Date().toISOString().slice(0, 10)
-	);
-	const [draft, setDraft] = useState<DraftExercise[]>(() =>
-		routine.exercises.map(re => ({
-			exerciseId: re.exerciseId,
-			sets: Array.from({length: re.targetSets}, () => ({
-				weight: '',
-				reps: ''
-			}))
-		}))
+	const hasMatchingSession = session?.routineId === routine.id;
+
+	const [date, setDateState] = useState(() =>
+		hasMatchingSession ? session!.date : new Date().toISOString().slice(0, 10)
 	);
 
-	// Single-pass index: exerciseId → logs sorted by date desc.
-	// All per-exercise lookups use this instead of re-filtering workoutLogs.
+	const [draft, setDraftState] = useState<DraftExercise[]>(() =>
+		hasMatchingSession
+			? session!.draft
+			: routine.exercises.map(re => ({
+					exerciseId: re.exerciseId,
+					sets: Array.from({length: re.targetSets}, () => ({weight: '', reps: ''}))
+				}))
+	);
+
+	const [doneExerciseIds, setDoneState] = useState<string[]>(() =>
+		hasMatchingSession ? session!.doneExerciseIds : []
+	);
+
+	useEffect(() => {
+		updateSession({date, draft, doneExerciseIds});
+	}, [date, draft, doneExerciseIds, updateSession]);
+
 	const logsByExercise = useMemo(() => {
 		const map = new Map<string, WorkoutLog[]>();
 		for (const log of workoutLogs) {
@@ -47,13 +50,10 @@ export function useWorkoutLogger(routine: Routine) {
 		return map;
 	}, [workoutLogs]);
 
-	const updateSet = (
-		exIdx: number,
-		setIdx: number,
-		field: 'weight' | 'reps',
-		value: string
-	) =>
-		setDraft(prev =>
+	const setDate = (d: string) => setDateState(d);
+
+	const updateSet = (exIdx: number, setIdx: number, field: 'weight' | 'reps', value: string) =>
+		setDraftState(prev =>
 			prev.map((ex, i) =>
 				i === exIdx
 					? {
@@ -67,21 +67,26 @@ export function useWorkoutLogger(routine: Routine) {
 		);
 
 	const addSet = (exIdx: number) =>
-		setDraft(prev =>
+		setDraftState(prev =>
 			prev.map((ex, i) =>
-				i === exIdx
-					? {...ex, sets: [...ex.sets, {weight: '', reps: ''}]}
-					: ex
+				i === exIdx ? {...ex, sets: [...ex.sets, {weight: '', reps: ''}]} : ex
 			)
 		);
 
 	const removeSet = (exIdx: number, setIdx: number) =>
-		setDraft(prev =>
+		setDraftState(prev =>
 			prev.map((ex, i) =>
 				i === exIdx
 					? {...ex, sets: ex.sets.filter((_, j) => j !== setIdx)}
 					: ex
 			)
+		);
+
+	const markDone = (exerciseId: string) =>
+		setDoneState(prev =>
+			prev.includes(exerciseId)
+				? prev.filter(id => id !== exerciseId)
+				: [...prev, exerciseId]
 		);
 
 	const exerciseName = (id: string) =>
@@ -110,9 +115,7 @@ export function useWorkoutLogger(routine: Routine) {
 	// Returns the last used weight if in the most recent session all sets hit
 	// targetReps with the same weight — signal to increase load.
 	const progressionHint = (exerciseId: string): number | null => {
-		const routineEx = routine.exercises.find(
-			re => re.exerciseId === exerciseId
-		);
+		const routineEx = routine.exercises.find(re => re.exerciseId === exerciseId);
 		if (!routineEx?.targetReps) return null;
 		const targetReps = routineEx.targetReps;
 
@@ -154,6 +157,7 @@ export function useWorkoutLogger(routine: Routine) {
 			routineName: routine.name,
 			exercises: workoutExercises
 		});
+		clearSession();
 		return true;
 	};
 
@@ -161,9 +165,11 @@ export function useWorkoutLogger(routine: Routine) {
 		date,
 		setDate,
 		draft,
+		doneExerciseIds,
 		updateSet,
 		addSet,
 		removeSet,
+		markDone,
 		exerciseName,
 		lastSets,
 		exercisePR,

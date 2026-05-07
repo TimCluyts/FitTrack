@@ -108,3 +108,13 @@ export interface DailyGoals {
 	fat?: number;
 	carbs?: number;
 }
+
+export interface DraftSet {
+	weight: string;
+	reps: string;
+}
+
+export interface DraftExercise {
+	exerciseId: string;
+	sets: DraftSet[];
+}

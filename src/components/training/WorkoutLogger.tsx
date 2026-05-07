@@ -8,13 +8,16 @@ import type {Routine} from '../../types/fitness';
 interface WorkoutLoggerProps {
 	routine: Routine;
 	onSave: () => void;
-	onCancel: () => void;
+	onBack: () => void;
 }
 
-export function WorkoutLogger({routine, onSave, onCancel}: WorkoutLoggerProps) {
+export function WorkoutLogger({routine, onSave, onBack}: Readonly<WorkoutLoggerProps>) {
 	const logger = useWorkoutLogger(routine);
 
-	const handleSave = () => {
+	const doneCount = logger.doneExerciseIds.length;
+	const totalCount = logger.draft.length;
+
+	const handleEndTraining = () => {
 		if (logger.save()) onSave();
 	};
 
@@ -29,13 +32,15 @@ export function WorkoutLogger({routine, onSave, onCancel}: WorkoutLoggerProps) {
 					gap: '12px',
 					marginBottom: '20px'
 				}}>
-				<div
-					style={{
-						fontWeight: 600,
-						fontSize: '15px',
-						color: '#1b4332'
-					}}>
-					{routine.name}
+				<div>
+					<div style={{fontWeight: 600, fontSize: '15px', color: '#1b4332'}}>
+						{routine.name}
+					</div>
+					{totalCount > 0 && (
+						<div style={{fontSize: '12px', color: '#718096', marginTop: '2px'}}>
+							{doneCount}/{totalCount} exercises done
+						</div>
+					)}
 				</div>
 				<Field style={{margin: 0}}>
 					<Field.Input
@@ -46,8 +51,7 @@ export function WorkoutLogger({routine, onSave, onCancel}: WorkoutLoggerProps) {
 				</Field>
 			</div>
 
-			<div
-				style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
+			<div style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
 				{logger.draft.map((de, exIdx) => (
 					<WorkoutExercisePanel
 						key={de.exerciseId}
@@ -56,11 +60,13 @@ export function WorkoutLogger({routine, onSave, onCancel}: WorkoutLoggerProps) {
 						pr={logger.exercisePR(de.exerciseId)}
 						progressBadge={logger.progressionHint(de.exerciseId)}
 						sets={de.sets}
+						isDone={logger.doneExerciseIds.includes(de.exerciseId)}
 						onUpdateSet={(setIdx, field, value) =>
 							logger.updateSet(exIdx, setIdx, field, value)
 						}
 						onAddSet={() => logger.addSet(exIdx)}
 						onRemoveSet={setIdx => logger.removeSet(exIdx, setIdx)}
+						onToggleDone={() => logger.markDone(de.exerciseId)}
 					/>
 				))}
 			</div>
@@ -73,11 +79,11 @@ export function WorkoutLogger({routine, onSave, onCancel}: WorkoutLoggerProps) {
 					display: 'flex',
 					gap: '8px'
 				}}>
-				<Button disabled={!logger.canSave} onClick={handleSave}>
-					Save Workout
+				<Button disabled={!logger.canSave} onClick={handleEndTraining}>
+					End Training
 				</Button>
-				<Button variant="outline" onClick={onCancel}>
-					Cancel
+				<Button variant="outline" onClick={onBack}>
+					Back
 				</Button>
 			</div>
 		</Card>

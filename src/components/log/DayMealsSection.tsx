@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import {useProducts, useRecipes, useLogEntries, useGoals, useDeleteLogEntry} from '../../hooks/useApi';
+import {useProducts, useRecipes, useLogEntries, useGoals, useDeleteLogEntry, useUpdateLogEntry} from '../../hooks/useApi';
 import {getEntryMacros, sumMacros} from '../../utils/macros';
 import {MealSection} from './MealSection';
 import {MacroBar} from '../MacroBar';
@@ -16,6 +16,7 @@ export function DayMealsSection({date}: DayMealsSectionProps) {
 	const {data: logEntries = []} = useLogEntries();
 	const {data: goals} = useGoals();
 	const deleteLogEntry = useDeleteLogEntry();
+	const updateLogEntry = useUpdateLogEntry();
 
 	const dayEntries = useMemo(
 		() => logEntries.filter(e => e.date === date),
@@ -56,11 +57,12 @@ export function DayMealsSection({date}: DayMealsSectionProps) {
 				const entries = dayEntries.filter(e => e.mealTime === meal.value);
 				if (!entries.length) return null;
 				return (
-					<MealSection
+					<MealSection 
 						key={meal.value}
 						label={meal.label}
 						entries={entries}
 						onDelete={id => deleteLogEntry.mutate(id)}
+						onUpdate={(id, amount) => updateLogEntry.mutate({id, data: {amount}})}
 					/>
 				);
 			})}

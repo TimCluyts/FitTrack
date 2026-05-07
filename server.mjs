@@ -314,6 +314,19 @@ async function handleApi(req, res) {
 		return json(res, 201, item);
 	}
 
+	// PUT /api/users/:uid/log/:id
+	params = matchPath('/api/users/:uid/log/:id', url);
+	if (method === 'PUT' && params) {
+		const body = await readBody(req);
+		const data = readData();
+		ensureUserData(data, params.uid);
+		const idx = data.userData[params.uid].logEntries.findIndex(e => e.id === params.id);
+		if (idx === -1) return json(res, 404, {error: 'Not found'});
+		data.userData[params.uid].logEntries[idx] = {...data.userData[params.uid].logEntries[idx], ...body};
+		writeData(data);
+		return json(res, 200, data.userData[params.uid].logEntries[idx]);
+	}
+
 	// DELETE /api/users/:uid/log/:id
 	params = matchPath('/api/users/:uid/log/:id', url);
 	if (method === 'DELETE' && params) {
