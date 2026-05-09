@@ -131,4 +131,6 @@ export interface PriceEntry {
 	price: number;
 	date: string;
 	unit?: string;
+	isPromo?: boolean;
+	regularPrice?: number;
 }

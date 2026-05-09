@@ -5,6 +5,7 @@ import {StoreManager} from '../components/grocery/StoreManager';
 import {PriceEntryForm} from '../components/grocery/PriceEntryForm';
 import {PriceTable} from '../components/grocery/PriceTable';
 import {PriceCompareChart} from '../components/grocery/PriceCompareChart';
+import {StoreOverview} from '../components/grocery/StoreOverview';
 
 export const Route = createFileRoute('/grocery')({
 	component: GroceryPage
@@ -62,7 +63,12 @@ function GroceryPage() {
 				</>
 			)}
 
-			{tab === 'compare' && <PriceCompareChart />}
+			{tab === 'compare' && (
+				<>
+					<StoreOverview />
+					<PriceCompareChart />
+				</>
+			)}
 		</div>
 	);
 }

@@ -90,7 +90,30 @@ export function PriceTable() {
 								<td style={tdStyle}>{entry.date}</td>
 								<td style={tdStyle}>{productMap[entry.productId] ?? '—'}</td>
 								<td style={tdStyle}>{storeMap[entry.storeId] ?? '—'}</td>
-								<td style={{...tdStyle, fontWeight: 600}}>€{entry.price.toFixed(2)}</td>
+								<td style={{...tdStyle, fontWeight: 600}}>
+									€{entry.price.toFixed(2)}
+									{entry.isPromo && (
+										<span
+											style={{
+												marginLeft: '6px',
+												background: '#e76f51',
+												color: 'white',
+												fontSize: '10px',
+												fontWeight: 700,
+												padding: '2px 5px',
+												borderRadius: '4px',
+												verticalAlign: 'middle',
+												letterSpacing: '0.5px'
+											}}>
+											PROMO
+										</span>
+									)}
+									{entry.isPromo && entry.regularPrice != null && (
+										<span style={{marginLeft: '5px', color: '#a0aec0', fontSize: '12px', fontWeight: 400}}>
+											reg. €{entry.regularPrice.toFixed(2)}
+										</span>
+									)}
+								</td>
 								<td style={{...tdStyle, color: '#718096'}}>{entry.unit ?? ''}</td>
 								<td style={{...tdStyle, textAlign: 'right'}}>
 									<button

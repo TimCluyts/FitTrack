@@ -14,8 +14,19 @@ import {
 import {useProducts, useStores, usePrices} from '../../hooks/useApi';
 import {Card} from '../ui/Card';
 import {AXIS_TICK, CHART_TITLE, TOOLTIP_CS} from '../report/chartStyles';
+import type {PriceEntry} from '../../types/fitness';
 
 const STORE_COLORS = ['#2d6a4f', '#52b788', '#40916c', '#e76f51', '#74c69d', '#e9c46a', '#1b4332'];
+
+// Returns the latest "real" price for a group of entries from one store.
+// Prefers the most recent non-promo entry; falls back to regularPrice from the latest promo.
+function latestRegularPrice(entries: PriceEntry[]): number | null {
+	const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date));
+	const nonPromo = sorted.find(e => !e.isPromo);
+	if (nonPromo) return nonPromo.price;
+	const withRegular = sorted.find(e => e.isPromo && e.regularPrice != null);
+	return withRegular?.regularPrice ?? null;
+}
 
 export function PriceCompareChart() {
 	const {data: products = []} = useProducts();
@@ -24,19 +35,21 @@ export function PriceCompareChart() {
 	const [productId, setProductId] = useState('');
 
 	const sortedProducts = [...products].sort((a, b) => a.name.localeCompare(b.name));
-
 	const storeMap = useMemo(() => Object.fromEntries(stores.map(s => [s.id, s.name])), [stores]);
-
 	const filtered = useMemo(() => prices.filter(p => p.productId === productId), [prices, productId]);
 
+	// Bar chart: latest regular price per store (promos excluded / using regularPrice)
 	const latestByStore = useMemo(() => {
-		const map: Record<string, {storeId: string; price: number; date: string}> = {};
-		for (const entry of filtered) {
-			const existing = map[entry.storeId];
-			if (!existing || entry.date > existing.date) map[entry.storeId] = entry;
+		const byStore: Record<string, PriceEntry[]> = {};
+		for (const e of filtered) {
+			(byStore[e.storeId] ??= []).push(e);
 		}
-		return Object.values(map)
-			.map(e => ({store: storeMap[e.storeId] ?? '?', price: e.price}))
+		return Object.entries(byStore)
+			.map(([storeId, entries]) => {
+				const p = latestRegularPrice(entries);
+				return p != null ? {store: storeMap[storeId] ?? '?', price: p} : null;
+			})
+			.filter((x): x is {store: string; price: number} => x !== null)
 			.sort((a, b) => a.price - b.price);
 	}, [filtered, storeMap]);
 
@@ -45,14 +58,21 @@ export function PriceCompareChart() {
 		[filtered, storeMap]
 	);
 
+	// Line chart: all entries including promos, with __promo flag for custom dot rendering
 	const historyData = useMemo(() => {
 		const allDates = [...new Set(filtered.map(e => e.date))].sort();
 		const storeIds = [...new Set(filtered.map(e => e.storeId))];
 		return allDates.map(date => {
-			const point: Record<string, string | number> = {date: date.slice(5).replace('-', '/')};
+			const point: Record<string, string | number | boolean> = {
+				date: date.slice(5).replace('-', '/')
+			};
 			for (const sid of storeIds) {
 				const entry = filtered.find(e => e.storeId === sid && e.date === date);
-				if (entry) point[storeMap[sid] ?? sid] = entry.price;
+				if (entry) {
+					const name = storeMap[sid] ?? sid;
+					point[name] = entry.price;
+					point[`${name}__promo`] = entry.isPromo ?? false;
+				}
 			}
 			return point;
 		});
@@ -104,7 +124,10 @@ export function PriceCompareChart() {
 
 			{latestByStore.length > 0 && (
 				<Card>
-					<div style={CHART_TITLE}>Latest price by store (€)</div>
+					<div style={CHART_TITLE}>Current regular price by store (€)</div>
+					<div style={{fontSize: '12px', color: '#718096', marginBottom: '12px'}}>
+						Promotional prices are excluded — uses the latest regular price per store.
+					</div>
 					<ResponsiveContainer width="100%" height={220}>
 						<BarChart data={latestByStore} margin={{top: 4, right: 12, left: 0, bottom: 4}}>
 							<CartesianGrid strokeDasharray="3 3" stroke="#e8f0e9" />
@@ -117,7 +140,7 @@ export function PriceCompareChart() {
 							/>
 							<Tooltip
 								contentStyle={TOOLTIP_CS}
-								formatter={v => [`€${Number(v).toFixed(2)}`, 'Price']}
+								formatter={v => [`€${Number(v).toFixed(2)}`, 'Regular price']}
 							/>
 							<Bar dataKey="price" fill="#2d6a4f" radius={[4, 4, 0, 0]} />
 						</BarChart>
@@ -127,7 +150,10 @@ export function PriceCompareChart() {
 
 			{historyData.length > 1 && (
 				<Card>
-					<div style={CHART_TITLE}>Price over time by store (€)</div>
+					<div style={CHART_TITLE}>Price history by store (€)</div>
+					<div style={{fontSize: '12px', color: '#718096', marginBottom: '12px'}}>
+						● regular price &nbsp;■ promotional price
+					</div>
 					<ResponsiveContainer width="100%" height={250}>
 						<LineChart data={historyData} margin={{top: 4, right: 12, left: 0, bottom: 4}}>
 							<CartesianGrid strokeDasharray="3 3" stroke="#e8f0e9" />
@@ -140,21 +166,50 @@ export function PriceCompareChart() {
 							/>
 							<Tooltip
 								contentStyle={TOOLTIP_CS}
-								formatter={(v, name) => [`€${Number(v).toFixed(2)}`, name]}
+								formatter={(v, name) => {
+									const label = String(name).endsWith('__promo') ? null : `€${Number(v).toFixed(2)}`;
+									return label ? [label, name] : [null, null];
+								}}
 							/>
 							<Legend wrapperStyle={{fontSize: '12px'}} />
-							{historyStoreNames.map((name, i) => (
-								<Line
-									key={name}
-									type="monotone"
-									dataKey={name}
-									stroke={STORE_COLORS[i % STORE_COLORS.length]}
-									strokeWidth={2}
-									dot={{r: 3, fill: STORE_COLORS[i % STORE_COLORS.length]}}
-									activeDot={{r: 5}}
-									connectNulls={false}
-								/>
-							))}
+							{historyStoreNames.map((name, i) => {
+								const color = STORE_COLORS[i % STORE_COLORS.length];
+								return (
+									<Line
+										key={name}
+										type="monotone"
+										dataKey={name}
+										stroke={color}
+										strokeWidth={2}
+										dot={(props: any) => {
+											const {cx, cy, payload} = props;
+											if (cx == null || cy == null) return <></>;
+											return payload[`${name}__promo`] ? (
+												<rect
+													key={`${cx}-${cy}`}
+													x={cx - 5}
+													y={cy - 5}
+													width={10}
+													height={10}
+													fill={color}
+													stroke="white"
+													strokeWidth={1.5}
+												/>
+											) : (
+												<circle
+													key={`${cx}-${cy}`}
+													cx={cx}
+													cy={cy}
+													r={3.5}
+													fill={color}
+												/>
+											);
+										}}
+										activeDot={{r: 5}}
+										connectNulls={false}
+									/>
+								);
+							})}
 						</LineChart>
 					</ResponsiveContainer>
 				</Card>
