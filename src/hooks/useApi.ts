@@ -230,3 +230,24 @@ export const useToggleFavorite = () => {
 		onSuccess: () => qc.invalidateQueries({queryKey: ['favorites', uid]})
 	});
 };
+
+// ── Grocery ──────────────────────────────────────────────────────────────────
+export const useStores = () => useQuery({queryKey: ['stores'], queryFn: api.getStores});
+export const useAddStore = () => {
+	const qc = useQueryClient();
+	return useMutation({mutationFn: api.addStore, onSuccess: () => qc.invalidateQueries({queryKey: ['stores']})});
+};
+export const useDeleteStore = () => {
+	const qc = useQueryClient();
+	return useMutation({mutationFn: api.deleteStore, onSuccess: () => qc.invalidateQueries({queryKey: ['stores']})});
+};
+
+export const usePrices = () => useQuery({queryKey: ['prices'], queryFn: api.getPrices});
+export const useAddPrice = () => {
+	const qc = useQueryClient();
+	return useMutation({mutationFn: api.addPrice, onSuccess: () => qc.invalidateQueries({queryKey: ['prices']})});
+};
+export const useDeletePrice = () => {
+	const qc = useQueryClient();
+	return useMutation({mutationFn: api.deletePrice, onSuccess: () => qc.invalidateQueries({queryKey: ['prices']})});
+};

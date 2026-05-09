@@ -60,6 +60,8 @@ function initData() {
 		],
 		products: [],
 		recipes: [],
+		stores: [],
+		prices: [],
 		userData: {
 			[timId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []},
 			[davineId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []}
@@ -123,8 +125,11 @@ function readData() {
 	try {
 		const raw = readFileSync(DATA, 'utf-8');
 		const parsed = JSON.parse(raw);
-		const migrated = migrate(parsed);
-		if (migrated !== parsed) {
+		let migrated = migrate(parsed);
+		let dirty = migrated !== parsed;
+		if (!migrated.stores) { migrated.stores = []; dirty = true; }
+		if (!migrated.prices) { migrated.prices = []; dirty = true; }
+		if (dirty) {
 			writeFileSync(DATA, JSON.stringify(migrated, null, 2));
 		}
 		return migrated;
@@ -549,6 +554,84 @@ async function handleApi(req, res) {
 		data.userData[params.uid].favorites = body;
 		writeData(data);
 		return json(res, 200, data.userData[params.uid].favorites);
+	}
+
+	// GET /api/stores
+	if (method === 'GET' && matchPath('/api/stores', url)) {
+		const data = readData();
+		return json(res, 200, data.stores);
+	}
+
+	// POST /api/stores
+	if (method === 'POST' && matchPath('/api/stores', url)) {
+		const body = await readBody(req);
+		if (!body?.name?.trim()) return badRequest(res, 'name required');
+		const data = readData();
+		const item = {id: randomUUID(), name: body.name.trim()};
+		data.stores.push(item);
+		writeData(data);
+		return json(res, 201, item);
+	}
+
+	// PUT /api/stores/:id
+	params = matchPath('/api/stores/:id', url);
+	if (method === 'PUT' && params) {
+		const body = await readBody(req);
+		const data = readData();
+		const idx = data.stores.findIndex(s => s.id === params.id);
+		if (idx === -1) return notFound(res);
+		data.stores[idx] = {...data.stores[idx], ...body, id: params.id};
+		writeData(data);
+		return json(res, 200, data.stores[idx]);
+	}
+
+	// DELETE /api/stores/:id
+	params = matchPath('/api/stores/:id', url);
+	if (method === 'DELETE' && params) {
+		const data = readData();
+		data.stores = data.stores.filter(s => s.id !== params.id);
+		writeData(data);
+		return json(res, 200, {ok: true});
+	}
+
+	// GET /api/prices
+	if (method === 'GET' && matchPath('/api/prices', url)) {
+		const data = readData();
+		return json(res, 200, data.prices);
+	}
+
+	// POST /api/prices
+	if (method === 'POST' && matchPath('/api/prices', url)) {
+		const body = await readBody(req);
+		if (!body?.productId || !body?.storeId || !body?.price || !body?.date) {
+			return badRequest(res, 'productId, storeId, price, date required');
+		}
+		const data = readData();
+		const item = {id: randomUUID(), ...body};
+		data.prices.push(item);
+		writeData(data);
+		return json(res, 201, item);
+	}
+
+	// PUT /api/prices/:id
+	params = matchPath('/api/prices/:id', url);
+	if (method === 'PUT' && params) {
+		const body = await readBody(req);
+		const data = readData();
+		const idx = data.prices.findIndex(p => p.id === params.id);
+		if (idx === -1) return notFound(res);
+		data.prices[idx] = {...data.prices[idx], ...body, id: params.id};
+		writeData(data);
+		return json(res, 200, data.prices[idx]);
+	}
+
+	// DELETE /api/prices/:id
+	params = matchPath('/api/prices/:id', url);
+	if (method === 'DELETE' && params) {
+		const data = readData();
+		data.prices = data.prices.filter(p => p.id !== params.id);
+		writeData(data);
+		return json(res, 200, {ok: true});
 	}
 
 	// GET /api/store

@@ -118,3 +118,17 @@ export interface DraftExercise {
 	exerciseId: string;
 	sets: DraftSet[];
 }
+
+export interface Store {
+	id: string;
+	name: string;
+}
+
+export interface PriceEntry {
+	id: string;
+	productId: string;
+	storeId: string;
+	price: number;
+	date: string;
+	unit?: string;
+}
