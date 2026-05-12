@@ -3,7 +3,6 @@ import {useDateNavigation} from '../hooks/useDateNavigation';
 import {DateNavBar} from '../components/log/DateNavBar';
 import {AddEntryCard} from '../components/log/AddEntryCard';
 import {FavoritesBar} from '../components/log/FavoritesBar';
-import {GoalsCard} from '../components/log/GoalsCard';
 import {DayMealsSection} from '../components/log/DayMealsSection';
 
 export const Route = createFileRoute('/log')({
@@ -27,7 +26,6 @@ function LogPage() {
 			/>
 			<AddEntryCard date={date} />
 			<FavoritesBar date={date} />
-			<GoalsCard />
 			<DayMealsSection date={date} />
 		</div>
 	);

@@ -19,9 +19,10 @@ function maxColor(v: number, max?: number): string {
 
 interface MacroBarProps extends MacroTotals {
 	goals?: DailyGoals;
+	onEditGoals?: () => void;
 }
 
-export function MacroBar({goals, ...totals}: MacroBarProps) {
+export function MacroBar({goals, onEditGoals, ...totals}: MacroBarProps) {
 	const items = [
 		{
 			key: 'kcal' as const,
@@ -66,14 +67,37 @@ export function MacroBar({goals, ...totals}: MacroBarProps) {
 			}}>
 			<div
 				style={{
-					fontSize: '11px',
-					fontWeight: 600,
-					color: 'rgba(255,255,255,0.6)',
-					textTransform: 'uppercase',
-					letterSpacing: '0.08em',
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
 					marginBottom: '14px'
 				}}>
-				Daily Totals
+				<div
+					style={{
+						fontSize: '11px',
+						fontWeight: 600,
+						color: 'rgba(255,255,255,0.6)',
+						textTransform: 'uppercase',
+						letterSpacing: '0.08em'
+					}}>
+					Daily Totals
+				</div>
+				{onEditGoals && (
+					<button
+						onClick={onEditGoals}
+						style={{
+							background: 'rgba(255,255,255,0.12)',
+							border: '1px solid rgba(255,255,255,0.2)',
+							borderRadius: '6px',
+							color: 'rgba(255,255,255,0.65)',
+							fontSize: '12px',
+							padding: '4px 10px',
+							cursor: 'pointer',
+							fontFamily: 'inherit'
+						}}>
+						Edit goals
+					</button>
+				)}
 			</div>
 			<div style={{display: 'flex', gap: '36px', flexWrap: 'wrap'}}>
 				{items.map(({key, label, value, color, goalLabel}) => (
