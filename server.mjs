@@ -63,8 +63,8 @@ function initData() {
 		stores: [],
 		prices: [],
 		userData: {
-			[timId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []},
-			[davineId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []}
+			[timId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: [], favorites: []},
+			[davineId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: [], favorites: []}
 		}
 	};
 }
@@ -129,6 +129,17 @@ function readData() {
 		let dirty = migrated !== parsed;
 		if (!migrated.stores) { migrated.stores = []; dirty = true; }
 		if (!migrated.prices) { migrated.prices = []; dirty = true; }
+		// Migrate goals from plain object to GoalPeriod[]
+		for (const uid of Object.keys(migrated.userData ?? {})) {
+			const ud = migrated.userData[uid];
+			if (ud && !Array.isArray(ud.goals)) {
+				const old = ud.goals ?? {};
+				ud.goals = Object.keys(old).length > 0
+					? [{id: randomUUID(), from: '2000-01-01', ...old}]
+					: [];
+				dirty = true;
+			}
+		}
 		if (dirty) {
 			writeFileSync(DATA, JSON.stringify(migrated, null, 2));
 		}
@@ -156,7 +167,7 @@ function ensureUserData(data, userId) {
 		};
 	}
 	if (!data.userData[userId].runLogs) data.userData[userId].runLogs = [];
-	if (!data.userData[userId].goals) data.userData[userId].goals = {};
+	if (!Array.isArray(data.userData[userId].goals)) data.userData[userId].goals = [];
 	if (!data.userData[userId].favorites) data.userData[userId].favorites = [];
 }
 
@@ -526,15 +537,27 @@ async function handleApi(req, res) {
 		return json(res, 200, data.userData[params.uid].goals);
 	}
 
-	// PUT /api/users/:uid/goals
+	// POST /api/users/:uid/goals  (add a new GoalPeriod)
 	params = matchPath('/api/users/:uid/goals', url);
-	if (method === 'PUT' && params) {
+	if (method === 'POST' && params) {
 		const body = await readBody(req);
+		if (!body?.from) return badRequest(res, 'from date required');
 		const data = readData();
 		ensureUserData(data, params.uid);
-		data.userData[params.uid].goals = body;
+		const item = {id: randomUUID(), ...body};
+		data.userData[params.uid].goals.push(item);
 		writeData(data);
-		return json(res, 200, data.userData[params.uid].goals);
+		return json(res, 201, item);
+	}
+
+	// DELETE /api/users/:uid/goals/:id
+	params = matchPath('/api/users/:uid/goals/:id', url);
+	if (method === 'DELETE' && params) {
+		const data = readData();
+		ensureUserData(data, params.uid);
+		data.userData[params.uid].goals = data.userData[params.uid].goals.filter(g => g.id !== params.id);
+		writeData(data);
+		return json(res, 200, {ok: true});
 	}
 
 	// GET /api/users/:uid/favorites

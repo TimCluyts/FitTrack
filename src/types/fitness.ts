@@ -109,6 +109,11 @@ export interface DailyGoals {
 	carbs?: number;
 }
 
+export interface GoalPeriod extends DailyGoals {
+	id: string;
+	from: string; // ISO date "YYYY-MM-DD" — when this goal became active
+}
+
 export interface DraftSet {
 	weight: string;
 	reps: string;

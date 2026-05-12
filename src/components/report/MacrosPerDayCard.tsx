@@ -1,20 +1,20 @@
 import {Card} from '../ui/Card';
 import {useMacrosView, type MacroViewMode} from '../../hooks/useMacrosView';
+import {useActiveGoal} from '../../hooks/useApi';
 import {MACROS} from './macroConfig';
 import {MacroStackedChart} from './MacroStackedChart';
 import {MacroLinesChart} from './MacroLinesChart';
-import type {DailyGoals} from '../../types/fitness';
 import type {MacroDayPoint} from './macroConfig';
 
 interface MacrosPerDayCardProps {
 	data: MacroDayPoint[];
-	goals?: DailyGoals;
 }
 
 const VIEW_LABELS: Record<MacroViewMode, string> = {stacked: 'Stacked', lines: 'Lines'};
 
-export function MacrosPerDayCard({data, goals}: MacrosPerDayCardProps) {
+export function MacrosPerDayCard({data}: MacrosPerDayCardProps) {
 	const {view, setView, active, toggleMacro} = useMacrosView();
+	const activeGoal = useActiveGoal();
 
 	return (
 		<Card>
@@ -73,9 +73,9 @@ export function MacrosPerDayCard({data, goals}: MacrosPerDayCardProps) {
 							}}>
 							{active[m.key] && <span style={{fontSize: '10px'}}>●</span>}
 							{m.label}
-							{goals?.[m.goalKey] != null && (
+							{activeGoal?.[m.goalKey] != null && (
 								<span style={{fontSize: '10px', opacity: active[m.key] ? 0.8 : 0.5}}>
-									{m.goalPrefix}{goals[m.goalKey]}g
+									{m.goalPrefix}{activeGoal[m.goalKey]}g
 								</span>
 							)}
 						</button>
@@ -86,7 +86,7 @@ export function MacrosPerDayCard({data, goals}: MacrosPerDayCardProps) {
 			{view === 'stacked' ? (
 				<MacroStackedChart data={data} />
 			) : (
-				<MacroLinesChart data={data} goals={goals} active={active} />
+				<MacroLinesChart data={data} active={active} />
 			)}
 		</Card>
 	);

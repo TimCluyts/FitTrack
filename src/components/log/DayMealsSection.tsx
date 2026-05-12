@@ -1,6 +1,7 @@
 import {useMemo} from 'react';
 import {useProducts, useRecipes, useLogEntries, useDeleteLogEntry, useUpdateLogEntry} from '../../hooks/useApi';
 import {useGoalsEditor} from '../../hooks/useGoalsEditor';
+import {currentActiveGoal} from '../../utils/goalPeriods';
 import {getEntryMacros, sumMacros} from '../../utils/macros';
 import {MealSection} from './MealSection';
 import {MacroBar} from '../MacroBar';
@@ -46,6 +47,8 @@ export function DayMealsSection({date}: DayMealsSectionProps) {
 		);
 	}
 
+	const activeGoal = currentActiveGoal(goalsEditor.periods);
+
 	return (
 		<>
 			{MEAL_TIMES.map(meal => {
@@ -64,13 +67,17 @@ export function DayMealsSection({date}: DayMealsSectionProps) {
 
 			{goalsEditor.editing ? (
 				<GoalsEditPanel
+					periods={goalsEditor.periods}
 					draft={goalsEditor.draft}
+					from={goalsEditor.from}
+					setFrom={goalsEditor.setFrom}
 					setField={goalsEditor.setField}
 					onSave={goalsEditor.save}
 					onCancel={goalsEditor.cancel}
+					onDeletePeriod={goalsEditor.deletePeriod}
 				/>
 			) : (
-				<MacroBar {...totals} goals={goalsEditor.goals} onEditGoals={goalsEditor.open} />
+				<MacroBar {...totals} goals={activeGoal} onEditGoals={goalsEditor.open} />
 			)}
 		</>
 	);

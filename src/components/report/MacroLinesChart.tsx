@@ -6,20 +6,17 @@ import {
 	CartesianGrid,
 	Tooltip,
 	Legend,
-	ResponsiveContainer,
-	ReferenceLine
+	ResponsiveContainer
 } from 'recharts';
 import {AXIS_TICK, TOOLTIP_CS} from './chartStyles';
 import {MACROS, type MacroDayPoint, type MacroKey} from './macroConfig';
-import type {DailyGoals} from '../../types/fitness';
 
 interface MacroLinesChartProps {
 	data: MacroDayPoint[];
-	goals?: DailyGoals;
 	active: Record<MacroKey, boolean>;
 }
 
-export function MacroLinesChart({data, goals, active}: MacroLinesChartProps) {
+export function MacroLinesChart({data, active}: MacroLinesChartProps) {
 	const activeMacros = MACROS.filter(m => active[m.key]);
 
 	if (activeMacros.length === 0) {
@@ -38,6 +35,8 @@ export function MacroLinesChart({data, goals, active}: MacroLinesChartProps) {
 		);
 	}
 
+	const hasAnyGoal = activeMacros.some(m => data.some(d => d[m.chartGoalKey] != null));
+
 	return (
 		<ResponsiveContainer width="100%" height={220}>
 			<LineChart data={data} margin={{top: 4, right: 12, left: 0, bottom: 4}}>
@@ -46,7 +45,12 @@ export function MacroLinesChart({data, goals, active}: MacroLinesChartProps) {
 				<YAxis tick={AXIS_TICK} width={48} />
 				<Tooltip
 					contentStyle={TOOLTIP_CS}
-					formatter={(v, name) => [`${v ?? 0}g`, String(name)]}
+					formatter={(v, name) => {
+						if (v == null) return [null, null];
+						const goalMacro = MACROS.find(m => m.chartGoalKey === name);
+						if (goalMacro) return [`${goalMacro.goalPrefix}${v}g`, `${goalMacro.label} goal`];
+						return [`${v ?? 0}g`, String(name)];
+					}}
 				/>
 				<Legend wrapperStyle={{fontSize: '12px'}} />
 				{activeMacros.map(m => (
@@ -61,27 +65,22 @@ export function MacroLinesChart({data, goals, active}: MacroLinesChartProps) {
 						activeDot={{r: 4}}
 					/>
 				))}
-				{activeMacros.map(m => {
-					const goal = goals?.[m.goalKey];
-					if (goal == null) return null;
-					return (
-						<ReferenceLine
+				{hasAnyGoal &&
+					activeMacros.map(m => (
+						<Line
 							key={`goal-${m.key}`}
-							y={goal}
+							type="stepAfter"
+							dataKey={m.chartGoalKey}
 							stroke={m.color}
 							strokeWidth={1.5}
-							strokeDasharray="6 3"
-							strokeOpacity={0.75}
-							label={{
-								value: `${m.goalPrefix} ${goal}g`,
-								position: 'insideTopRight',
-								fill: m.color,
-								fontSize: 11,
-								fontWeight: 600
-							}}
+							strokeDasharray="5 3"
+							strokeOpacity={0.65}
+							dot={false}
+							activeDot={{r: 0}}
+							legendType="none"
+							connectNulls={false}
 						/>
-					);
-				})}
+					))}
 			</LineChart>
 		</ResponsiveContainer>
 	);

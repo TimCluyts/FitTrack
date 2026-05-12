@@ -201,15 +201,38 @@ export const useDeleteRunLog = () => {
 
 export const useGoals = () => {
 	const uid = useUid();
-	return useQuery({queryKey: ['goals', uid], queryFn: () => api.getGoals(uid!), enabled: !!uid});
+	return useQuery({
+		queryKey: ['goals', uid],
+		queryFn: async () => {
+			const result = await api.getGoals(uid!);
+			// Guard: server may return legacy object format before migration runs
+			return Array.isArray(result) ? result : [];
+		},
+		enabled: !!uid
+	});
 };
-export const useSetGoals = () => {
+export const useAddGoalPeriod = () => {
 	const qc = useQueryClient();
 	const uid = useUid();
 	return useMutation({
-		mutationFn: (goals: import('../types/fitness').DailyGoals) => api.setGoals(uid!, goals),
+		mutationFn: (d: Omit<import('../types/fitness').GoalPeriod, 'id'>) => api.addGoalPeriod(uid!, d),
 		onSuccess: () => qc.invalidateQueries({queryKey: ['goals', uid]})
 	});
+};
+export const useDeleteGoalPeriod = () => {
+	const qc = useQueryClient();
+	const uid = useUid();
+	return useMutation({
+		mutationFn: (id: string) => api.deleteGoalPeriod(uid!, id),
+		onSuccess: () => qc.invalidateQueries({queryKey: ['goals', uid]})
+	});
+};
+export const useActiveGoal = () => {
+	const {data: periods = []} = useGoals();
+	const today = new Date().toISOString().slice(0, 10);
+	return [...periods]
+		.sort((a, b) => b.from.localeCompare(a.from))
+		.find(p => p.from <= today);
 };
 
 export const useFavorites = () => {
