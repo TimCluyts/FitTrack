@@ -1,4 +1,4 @@
-import type {CSSProperties, ReactNode} from 'react';
+import type {CSSProperties, HTMLAttributes, ReactNode} from 'react';
 
 const thStyle: CSSProperties = {
 	padding: '8px',
@@ -10,8 +10,8 @@ const thStyle: CSSProperties = {
 	letterSpacing: '0.04em'
 };
 
-function DataTableRow({children}: {children: ReactNode}) {
-	return <tr style={{borderBottom: '1px solid #f0f4f0'}}>{children}</tr>;
+function DataTableRow({children, ...rest}: {children: ReactNode} & HTMLAttributes<HTMLTableRowElement>) {
+	return <tr style={{borderBottom: '1px solid #f0f4f0'}} {...rest}>{children}</tr>;
 }
 
 function DataTableCell({

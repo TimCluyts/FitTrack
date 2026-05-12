@@ -33,7 +33,7 @@ export const api = {
 
 	getLog: (uid: string) => apiFetch<LogEntry[]>(`/users/${uid}/log`),
 	addLogEntry: (uid: string, d: Omit<LogEntry, 'id'>) => post(`/users/${uid}/log`, d) as Promise<LogEntry>,
-	updateLogEntry: (uid: string, id: string, d: Partial<Pick<LogEntry, 'amount' | 'portions'>>) => put(`/users/${uid}/log/${id}`, d) as Promise<LogEntry>,
+	updateLogEntry: (uid: string, id: string, d: Partial<Omit<LogEntry, 'id'>>) => put(`/users/${uid}/log/${id}`, d) as Promise<LogEntry>,
 	deleteLogEntry: (uid: string, id: string) => del(`/users/${uid}/log/${id}`),
 
 	getWeight: (uid: string) => apiFetch<WeightEntry[]>(`/users/${uid}/weight`),

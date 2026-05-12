@@ -30,6 +30,14 @@ export interface Recipe {
 	ingredients: RecipeIngredient[];
 }
 
+export interface CustomEntry {
+	name: string;
+	kcal: number;
+	protein: number;
+	fat: number;
+	carbs: number;
+}
+
 export interface LogEntry {
 	id: string;
 	date: string;
@@ -40,6 +48,8 @@ export interface LogEntry {
 	// recipe entry
 	recipeId?: string;
 	portions?: number;
+	// custom (one-off) entry
+	customEntry?: CustomEntry;
 }
 
 export interface MacroTotals {

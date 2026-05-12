@@ -62,7 +62,7 @@ export const useUpdateLogEntry = () => {
 	const qc = useQueryClient();
 	const uid = useUid();
 	return useMutation({
-		mutationFn: ({id, data}: {id: string; data: Parameters<typeof api.updateLogEntry>[2]}) =>
+		mutationFn: ({id, data}: {readonly id: string; readonly data: Parameters<typeof api.updateLogEntry>[2]}) =>
 			api.updateLogEntry(uid!, id, data),
 		onSuccess: () => qc.invalidateQueries({queryKey: ['log', uid]})
 	});

@@ -54,18 +54,38 @@ export const calcRecipeMacros = (
 	};
 };
 
+type MacroResolver = {
+	matches: (entry: LogEntry) => boolean;
+	resolve: (entry: LogEntry, products: Product[], recipes: Recipe[]) => MacroTotals | null;
+};
+
+const MACRO_RESOLVERS: MacroResolver[] = [
+	{
+		matches: e => !!e.customEntry,
+		resolve: e => {
+			const {kcal, protein, fat, carbs} = e.customEntry!;
+			return {kcal, protein, fat, carbs};
+		}
+	},
+	{
+		matches: e => !!e.recipeId,
+		resolve: (e, products, recipes) => {
+			const recipe = recipes.find(r => r.id === e.recipeId);
+			return recipe ? calcRecipeMacros(recipe, products, e.amount ?? 0) : null;
+		}
+	},
+	{
+		matches: e => !!e.productId,
+		resolve: (e, products) => {
+			const product = products.find(p => p.id === e.productId);
+			return product ? calcMacros(product, e.amount ?? 0) : null;
+		}
+	}
+];
+
 export const getEntryMacros = (
 	entry: LogEntry,
 	products: Product[],
 	recipes: Recipe[] = []
-): MacroTotals | null => {
-	if (entry.recipeId) {
-		const recipe = recipes.find(r => r.id === entry.recipeId);
-		return recipe ? calcRecipeMacros(recipe, products, entry.amount ?? 0) : null;
-	}
-	if (entry.productId) {
-		const product = products.find(p => p.id === entry.productId);
-		return product ? calcMacros(product, entry.amount ?? 0) : null;
-	}
-	return null;
-};
+): MacroTotals | null =>
+	MACRO_RESOLVERS.find(r => r.matches(entry))?.resolve(entry, products, recipes) ?? null;

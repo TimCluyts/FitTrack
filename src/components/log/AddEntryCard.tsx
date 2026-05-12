@@ -4,13 +4,15 @@ import {Card} from '../ui/Card';
 import {ModeToggle} from '../ui/ModeToggle';
 import {ProductEntryForm} from './ProductEntryForm';
 import {RecipeEntryForm} from './RecipeEntryForm';
+import {CustomEntryForm} from './CustomEntryForm';
 
 const ADD_MODES = [
 	{value: 'product' as const, label: 'Product'},
-	{value: 'recipe' as const, label: 'Recipe'}
+	{value: 'recipe' as const, label: 'Recipe'},
+	{value: 'custom' as const, label: 'Custom'}
 ] as const;
 
-export function AddEntryCard({date}: {date: string}) {
+export function AddEntryCard({date}: Readonly<{date: string}>) {
 	const {
 		mode,
 		setMode,
@@ -26,6 +28,8 @@ export function AddEntryCard({date}: {date: string}) {
 		mealTime,
 		setMealTime,
 		activeProduct,
+		customFields,
+		setCustomField,
 		submit,
 		products,
 		recipes
@@ -70,6 +74,16 @@ export function AddEntryCard({date}: {date: string}) {
 						onMealChange={setMealTime}
 						onSubmit={() => submit(date)}
 						canSubmit={!!recipeId && !!recipeAmount}
+					/>
+				</Activity>
+				<Activity mode={mode === 'custom' ? 'visible' : 'hidden'}>
+					<CustomEntryForm
+						fields={customFields}
+						onFieldChange={setCustomField}
+						mealTime={mealTime}
+						onMealChange={setMealTime}
+						onSubmit={() => submit(date)}
+						canSubmit={!!customFields.name.trim()}
 					/>
 				</Activity>
 			</div>
