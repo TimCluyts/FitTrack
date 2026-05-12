@@ -1,4 +1,4 @@
-import type {DailyGoals, Exercise, LogEntry, Product, Recipe, Routine, RunLog, WeightEntry, WorkoutLog} from '../types/fitness';
+import type {DailyGoals, Exercise, LogEntry, PriceEntry, Product, Recipe, Routine, RunLog, Store, WeightEntry, WorkoutLog} from '../types/fitness';
 import type {User} from '../store/userStore';
 
 const BASE = '/api';
@@ -63,4 +63,14 @@ export const api = {
 
 	getFavorites: (uid: string) => apiFetch<string[]>(`/users/${uid}/favorites`),
 	setFavorites: (uid: string, ids: string[]) => put(`/users/${uid}/favorites`, ids) as Promise<string[]>,
+
+	getStores: () => apiFetch<Store[]>('/stores'),
+	addStore: (d: Omit<Store, 'id'>) => post('/stores', d) as Promise<Store>,
+	updateStore: (id: string, d: Partial<Omit<Store, 'id'>>) => put(`/stores/${id}`, d) as Promise<Store>,
+	deleteStore: (id: string) => del(`/stores/${id}`),
+
+	getPrices: () => apiFetch<PriceEntry[]>('/prices'),
+	addPrice: (d: Omit<PriceEntry, 'id'>) => post('/prices', d) as Promise<PriceEntry>,
+	updatePrice: (id: string, d: Partial<Omit<PriceEntry, 'id'>>) => put(`/prices/${id}`, d) as Promise<PriceEntry>,
+	deletePrice: (id: string) => del(`/prices/${id}`),
 };

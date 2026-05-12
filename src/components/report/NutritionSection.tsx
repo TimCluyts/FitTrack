@@ -1,18 +1,18 @@
 import {useNutritionChartData} from '../../hooks/useNutritionChartData';
+import {useGoals} from '../../hooks/useApi';
 import {CaloriesPerDayCard} from './CaloriesPerDayCard';
 import {MacrosPerDayCard} from './MacrosPerDayCard';
-import {NutritionSummaryCard} from './NutritionSummaryCard';
 
 export function NutritionSection() {
-	const {allDays, chartDays} = useNutritionChartData();
+	const {chartDays} = useNutritionChartData();
+	const {data: goals} = useGoals();
 
-	if (!allDays.length) return null;
+	if (!chartDays.length) return null;
 
 	return (
 		<>
-			<CaloriesPerDayCard data={chartDays} />
-			<MacrosPerDayCard data={chartDays} />
-			<NutritionSummaryCard days={allDays} />
+			<CaloriesPerDayCard data={chartDays} goals={goals} />
+			<MacrosPerDayCard data={chartDays} goals={goals} />
 		</>
 	);
 }

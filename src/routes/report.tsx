@@ -3,6 +3,7 @@ import {useHasReportData} from '../hooks/useHasReportData';
 import {PageHeader} from '../components/ui/PageHeader';
 import {EmptyReportCard} from '../components/report/EmptyReportCard';
 import {NutritionSection} from '../components/report/NutritionSection';
+import {NutritionSummarySection} from '../components/report/NutritionSummarySection';
 import {WeightSection} from '../components/report/WeightSection';
 import {TrainingSection} from '../components/report/TrainingSection';
 import {RunningSection} from '../components/report/RunningSection';
@@ -21,6 +22,7 @@ function ReportPage() {
 			<PageHeader title="Report" />
 			<NutritionSection />
 			<WeightSection />
+			<NutritionSummarySection />
 			<TrainingSection />
 			<RunningSection />
 		</div>

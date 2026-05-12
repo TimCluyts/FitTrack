@@ -1,64 +1,93 @@
-import {
-	BarChart,
-	Bar,
-	XAxis,
-	YAxis,
-	CartesianGrid,
-	Tooltip,
-	Legend,
-	ResponsiveContainer
-} from 'recharts';
 import {Card} from '../ui/Card';
-import {AXIS_TICK, CHART_TITLE, TOOLTIP_CS} from './chartStyles';
-
-interface DayPoint {
-	label: string;
-	protein: number;
-	fat: number;
-	carbs: number;
-}
+import {useMacrosView, type MacroViewMode} from '../../hooks/useMacrosView';
+import {MACROS} from './macroConfig';
+import {MacroStackedChart} from './MacroStackedChart';
+import {MacroLinesChart} from './MacroLinesChart';
+import type {DailyGoals} from '../../types/fitness';
+import type {MacroDayPoint} from './macroConfig';
 
 interface MacrosPerDayCardProps {
-	data: DayPoint[];
+	data: MacroDayPoint[];
+	goals?: DailyGoals;
 }
 
-export function MacrosPerDayCard({data}: MacrosPerDayCardProps) {
+const VIEW_LABELS: Record<MacroViewMode, string> = {stacked: 'Stacked', lines: 'Lines'};
+
+export function MacrosPerDayCard({data, goals}: MacrosPerDayCardProps) {
+	const {view, setView, active, toggleMacro} = useMacrosView();
+
 	return (
 		<Card>
-			<div style={CHART_TITLE}>Macros per day (g)</div>
-			<ResponsiveContainer width="100%" height={220}>
-				<BarChart
-					data={data}
-					margin={{top: 4, right: 12, left: 0, bottom: 4}}>
-					<CartesianGrid strokeDasharray="3 3" stroke="#e8f0e9" />
-					<XAxis dataKey="label" tick={AXIS_TICK} />
-					<YAxis tick={AXIS_TICK} width={48} />
-					<Tooltip
-						contentStyle={TOOLTIP_CS}
-						formatter={(v, name) => [`${v ?? 0}g`, String(name)]}
-					/>
-					<Legend wrapperStyle={{fontSize: '12px'}} />
-					<Bar
-						dataKey="protein"
-						name="Protein"
-						fill="#48bb78"
-						stackId="macros"
-					/>
-					<Bar
-						dataKey="carbs"
-						name="Carbs"
-						fill="#4299e1"
-						stackId="macros"
-					/>
-					<Bar
-						dataKey="fat"
-						name="Fat"
-						fill="#ed8936"
-						stackId="macros"
-						radius={[3, 3, 0, 0]}
-					/>
-				</BarChart>
-			</ResponsiveContainer>
+			<div
+				style={{
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
+					marginBottom: '12px'
+				}}>
+				<div style={{fontWeight: 600, fontSize: '15px', color: '#1b4332'}}>
+					Macros per day (g)
+				</div>
+				<div style={{display: 'flex', gap: '4px'}}>
+					{(['stacked', 'lines'] as MacroViewMode[]).map(v => (
+						<button
+							key={v}
+							onClick={() => setView(v)}
+							style={{
+								padding: '4px 12px',
+								fontSize: '12px',
+								fontWeight: view === v ? 600 : 400,
+								background: view === v ? '#2d6a4f' : 'transparent',
+								color: view === v ? 'white' : '#4a7c59',
+								border: view === v ? 'none' : '1px solid #b7d9c5',
+								borderRadius: '5px',
+								cursor: 'pointer',
+								fontFamily: 'inherit'
+							}}>
+							{VIEW_LABELS[v]}
+						</button>
+					))}
+				</div>
+			</div>
+
+			{view === 'lines' && (
+				<div style={{display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap'}}>
+					{MACROS.map(m => (
+						<button
+							key={m.key}
+							onClick={() => toggleMacro(m.key)}
+							style={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								gap: '5px',
+								padding: '4px 12px',
+								fontSize: '12px',
+								fontWeight: active[m.key] ? 600 : 400,
+								background: active[m.key] ? m.color : '#f0f4f0',
+								color: active[m.key] ? 'white' : '#718096',
+								border: 'none',
+								borderRadius: '20px',
+								cursor: 'pointer',
+								fontFamily: 'inherit',
+								transition: 'all 0.15s ease'
+							}}>
+							{active[m.key] && <span style={{fontSize: '10px'}}>●</span>}
+							{m.label}
+							{goals?.[m.goalKey] != null && (
+								<span style={{fontSize: '10px', opacity: active[m.key] ? 0.8 : 0.5}}>
+									{m.goalPrefix}{goals[m.goalKey]}g
+								</span>
+							)}
+						</button>
+					))}
+				</div>
+			)}
+
+			{view === 'stacked' ? (
+				<MacroStackedChart data={data} />
+			) : (
+				<MacroLinesChart data={data} goals={goals} active={active} />
+			)}
 		</Card>
 	);
 }

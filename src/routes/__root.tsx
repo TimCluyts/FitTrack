@@ -99,6 +99,7 @@ function RootLayout() {
 								)}
 								<NavLink to="/products">Products</NavLink>
 								<NavLink to="/recipes">Recipes</NavLink>
+								<NavLink to="/grocery">Grocery</NavLink>
 								<UserBadge />
 							</div>
 						)}
@@ -131,6 +132,9 @@ function RootLayout() {
 							</MobileNavLink>
 							<MobileNavLink to="/recipes" onClick={closeMenu}>
 								Recipes
+							</MobileNavLink>
+							<MobileNavLink to="/grocery" onClick={closeMenu}>
+								Grocery
 							</MobileNavLink>
 						</div>
 					)}
