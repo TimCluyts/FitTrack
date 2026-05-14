@@ -13,25 +13,16 @@ import {
 } from 'recharts';
 import {useProducts, useStores, usePrices} from '../../hooks/useApi';
 import {Card} from '../ui/Card';
+import type {PriceEntry} from '../../types/fitness';
 import {ModeToggle} from '../ui/ModeToggle';
 import {ProductCombobox} from '../ProductCombobox';
 import {AXIS_TICK, CHART_TITLE, TOOLTIP_CS} from '../report/chartStyles';
-import type {PriceEntry} from '../../types/fitness';
-
-const STORE_COLORS = ['#2d6a4f', '#52b788', '#40916c', '#e76f51', '#74c69d', '#e9c46a', '#1b4332'];
+import {STORE_COLORS, latestRegularPrice} from '../../utils/priceUtils';
 
 const CHART_MODES = [
 	{value: 'bar' as const, label: 'Current prices'},
 	{value: 'line' as const, label: 'Evolution'}
 ] as const;
-
-function latestRegularPrice(entries: PriceEntry[]): number | null {
-	const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date));
-	const nonPromo = sorted.find(e => !e.isPromo);
-	if (nonPromo) return nonPromo.price;
-	const withRegular = sorted.find(e => e.isPromo && e.regularPrice != null);
-	return withRegular?.regularPrice ?? null;
-}
 
 export function PriceCompareChart() {
 	const {data: products = []} = useProducts();
