@@ -2,7 +2,7 @@ const path = require('node:path');
 const {rspack} = require('@rspack/core');
 const {tanstackRouter} = require('@tanstack/router-plugin/rspack');
 
-module.exports = (_, {mode} = {}) => {
+module.exports = function config(_, {mode} = {}) {
 	return {
 		entry: './src/index.tsx',
 		mode: mode || 'development',
@@ -10,7 +10,7 @@ module.exports = (_, {mode} = {}) => {
 			filename: 'index.js',
 			path: path.join(__dirname, './.build'),
 			clean: true,
-			publicPath: './'
+			publicPath: mode === 'production' ? './' : '/'
 		},
 		resolve: {
 			extensions: ['.js', '.jsx', '.ts', '.tsx', '.css', '.scss'],

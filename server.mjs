@@ -40,9 +40,9 @@ const MIME = {
 	'.woff2': 'font/woff2',
 };
 
-if (!existsSync(DIST)) {
-	console.error('❌  dist/ not found — run "npm run build" first.\n');
-	process.exit(1);
+const DIST_EXISTS = existsSync(DIST);
+if (!DIST_EXISTS) {
+	console.warn('⚠  .build/ not found — running in API-only mode. Use "npm run dev" for the frontend.\n');
 }
 
 function capitalize(str) {
@@ -688,6 +688,7 @@ createServer(async (req, res) => {
 		return;
 	}
 
+	if (!DIST_EXISTS) return json(res, 503, {error: 'Frontend not built — run npm run build'});
 	const filePath = join(DIST, urlPath);
 	serveStatic(res, filePath);
 }).listen(PORT, '0.0.0.0', () => {

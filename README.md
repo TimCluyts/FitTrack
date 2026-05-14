@@ -54,15 +54,20 @@ Log workouts against saved routines and exercises, track sets/reps/weight.
 
 ## Local development
 
-`server.mjs` serves both the static frontend and the REST API from port 3001. Build first, then start the server:
+Two terminals — the Rspack dev server handles the frontend with hot reload on port 9005, and `server.mjs` handles the API on port 3001. The dev server proxies all `/api/*` requests to port 3001.
 
+**Terminal 1 — API server:**
 ```bash
-npm install
-npm run build
-node server.mjs   # http://localhost:3001
+node server.mjs
 ```
 
-Iterate by re-running `npm run build` and refreshing the browser. Auth is disabled when `AUTH_USER` / `AUTH_PASS` are not set, so no `.env` is needed locally.
+**Terminal 2 — frontend with hot reload:**
+```bash
+npm install
+npm run dev       # http://localhost:9005
+```
+
+Auth is disabled when `AUTH_USER` / `AUTH_PASS` are not set, so no `.env` is needed locally.
 
 ### Running with auth locally
 
