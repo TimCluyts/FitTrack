@@ -1,6 +1,8 @@
 import {useState} from 'react';
 import {useProducts, useStores, usePrices, useDeletePrice} from '../../hooks/useApi';
 import {Card} from '../ui/Card';
+import {ProductCombobox} from '../ProductCombobox';
+import {StoreCombobox} from '../StoreCombobox';
 
 const thStyle: React.CSSProperties = {
 	textAlign: 'left',
@@ -17,16 +19,6 @@ const tdStyle: React.CSSProperties = {
 	fontSize: '14px'
 };
 
-const filterSelectStyle: React.CSSProperties = {
-	padding: '7px 10px',
-	fontSize: '13px',
-	border: '1px solid #d1e7da',
-	borderRadius: '6px',
-	fontFamily: 'inherit',
-	background: 'white',
-	cursor: 'pointer',
-	outline: 'none'
-};
 
 export function PriceTable() {
 	const {data: products = []} = useProducts();
@@ -53,24 +45,22 @@ export function PriceTable() {
 				Price History
 			</div>
 			<div style={{display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap'}}>
-				<select value={filterProduct} onChange={e => setFilterProduct(e.target.value)} style={filterSelectStyle}>
-					<option value="">All products</option>
-					{[...products]
-						.sort((a, b) => a.name.localeCompare(b.name))
-						.map(p => (
-							<option key={p.id} value={p.id}>
-								{p.name}
-							</option>
-						))}
-				</select>
-				<select value={filterStore} onChange={e => setFilterStore(e.target.value)} style={filterSelectStyle}>
-					<option value="">All stores</option>
-					{stores.map(s => (
-						<option key={s.id} value={s.id}>
-							{s.name}
-						</option>
-					))}
-				</select>
+				<div style={{width: '220px'}}>
+					<ProductCombobox
+						products={products}
+						value={filterProduct}
+						onChange={setFilterProduct}
+						placeholder="All products"
+					/>
+				</div>
+				<div style={{width: '180px'}}>
+					<StoreCombobox
+						stores={stores}
+						value={filterStore}
+						onChange={setFilterStore}
+						placeholder="All stores"
+					/>
+				</div>
 			</div>
 			<div style={{overflowX: 'auto'}}>
 				<table style={{width: '100%', borderCollapse: 'collapse'}}>

@@ -1,28 +1,14 @@
 import {useState} from 'react';
 import {useProducts, useStores, useAddPrice} from '../../hooks/useApi';
 import {Card} from '../ui/Card';
+import {Field} from '../ui/Field';
 import {Button} from '../ui/Button';
+import {ProductCombobox} from '../ProductCombobox';
+import {StoreCombobox} from '../StoreCombobox';
 
 function today() {
 	return new Date().toISOString().slice(0, 10);
 }
-
-const inputStyle: React.CSSProperties = {
-	padding: '8px 10px',
-	fontSize: '14px',
-	border: '1px solid #d1e7da',
-	borderRadius: '6px',
-	fontFamily: 'inherit',
-	outline: 'none',
-	width: '100%',
-	boxSizing: 'border-box'
-};
-
-const selectStyle: React.CSSProperties = {
-	...inputStyle,
-	background: 'white',
-	cursor: 'pointer'
-};
 
 export function PriceEntryForm() {
 	const {data: products = []} = useProducts();
@@ -37,7 +23,6 @@ export function PriceEntryForm() {
 	const [isPromo, setIsPromo] = useState(false);
 	const [regularPrice, setRegularPrice] = useState('');
 
-	const sortedProducts = [...products].sort((a, b) => a.name.localeCompare(b.name));
 	const canSubmit = productId && storeId && price && Number(price) > 0;
 
 	const handleSubmit = () => {
@@ -75,55 +60,54 @@ export function PriceEntryForm() {
 					gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
 					gap: '12px'
 				}}>
-				<label style={{display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: '#4a5568'}}>
-					Product
-					<select value={productId} onChange={e => setProductId(e.target.value)} style={selectStyle}>
-						<option value="">Select product...</option>
-						{sortedProducts.map(p => (
-							<option key={p.id} value={p.id}>
-								{p.name}
-							</option>
-						))}
-					</select>
-				</label>
-				<label style={{display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: '#4a5568'}}>
-					Store
-					<select value={storeId} onChange={e => setStoreId(e.target.value)} style={selectStyle}>
-						<option value="">Select store...</option>
-						{stores.map(s => (
-							<option key={s.id} value={s.id}>
-								{s.name}
-							</option>
-						))}
-					</select>
-				</label>
-				<label style={{display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: '#4a5568'}}>
-					Price (€)
-					<input
+				<Field>
+					<Field.Label>Product</Field.Label>
+					<ProductCombobox
+						products={products}
+						value={productId}
+						onChange={setProductId}
+						placeholder="Search product…"
+					/>
+				</Field>
+				<Field>
+					<Field.Label>Store</Field.Label>
+					<StoreCombobox
+						stores={stores}
+						value={storeId}
+						onChange={setStoreId}
+						placeholder="Search store…"
+					/>
+				</Field>
+				<Field>
+					<Field.Label>Price (€)</Field.Label>
+					<Field.Input
 						type="number"
 						min="0"
 						step="0.01"
 						value={price}
 						onChange={e => setPrice(e.target.value)}
 						placeholder="0.00"
-						style={inputStyle}
 					/>
-				</label>
-				<label style={{display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: '#4a5568'}}>
-					Date
-					<input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
-				</label>
-				<label style={{display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px', color: '#4a5568'}}>
-					<span>
-						Unit <span style={{color: '#a0aec0', fontWeight: 400, fontSize: '12px'}}>(optional)</span>
-					</span>
-					<input
+				</Field>
+				<Field>
+					<Field.Label>Date</Field.Label>
+					<Field.Input
+						type="date"
+						value={date}
+						onChange={e => setDate(e.target.value)}
+					/>
+				</Field>
+				<Field>
+					<Field.Label>
+						Unit{' '}
+						<span style={{color: '#a0aec0', fontWeight: 400, fontSize: '12px'}}>(optional)</span>
+					</Field.Label>
+					<Field.Input
 						value={unit}
 						onChange={e => setUnit(e.target.value)}
 						placeholder="e.g. per 100g, per kg"
-						style={inputStyle}
 					/>
-				</label>
+				</Field>
 			</div>
 
 			<div style={{marginTop: '16px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap'}}>

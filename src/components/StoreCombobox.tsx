@@ -1,23 +1,22 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import type {CSSProperties} from 'react';
 import {Field} from './ui/Field';
-import type {Product} from '../types/fitness';
+import type {Store} from '../types/fitness';
 
-interface ProductComboboxProps {
-	products: Product[];
+interface StoreComboboxProps {
+	stores: Store[];
 	value: string;
 	onChange: (id: string) => void;
 	placeholder?: string;
 }
 
-export function ProductCombobox({products, value, onChange, placeholder = 'Type to search products…'}: ProductComboboxProps) {
-	const selected = products.find(p => p.id === value);
+export function StoreCombobox({stores, value, onChange, placeholder = 'Type to search stores…'}: StoreComboboxProps) {
+	const selected = stores.find(s => s.id === value);
 	const [search, setSearch] = useState('');
 	const [open, setOpen] = useState(false);
 	const [dropdownPos, setDropdownPos] = useState<CSSProperties>({});
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	// Keep input text in sync when an external change clears the selection
 	useEffect(() => {
 		if (!value) setSearch('');
 		else if (selected) setSearch(selected.name);
@@ -25,32 +24,25 @@ export function ProductCombobox({products, value, onChange, placeholder = 'Type 
 
 	const filtered = useMemo(
 		() =>
-			[...products]
-				.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+			[...stores]
+				.filter(s => s.name.toLowerCase().includes(search.toLowerCase()))
 				.sort((a, b) => a.name.localeCompare(b.name)),
-		[products, search]
+		[stores, search]
 	);
 
 	const handleFocus = () => {
 		if (containerRef.current) {
 			const r = containerRef.current.getBoundingClientRect();
-			setDropdownPos({
-				position: 'fixed',
-				top: r.bottom + 2,
-				left: r.left,
-				width: r.width
-			});
+			setDropdownPos({position: 'fixed', top: r.bottom + 2, left: r.left, width: r.width});
 		}
 		setSearch('');
 		setOpen(true);
 	};
 
-	// Delay so mouseDown on an option fires before blur closes the list
 	const handleBlur = () =>
 		setTimeout(() => {
 			setOpen(false);
-			if (selected) setSearch(selected.name);
-			else setSearch('');
+			setSearch(selected?.name ?? '');
 		}, 150);
 
 	const handleChange = (v: string) => {
@@ -86,46 +78,29 @@ export function ProductCombobox({products, value, onChange, placeholder = 'Type 
 						zIndex: 1000
 					}}>
 					{filtered.length === 0 ? (
-						<div
-							style={{
-								padding: '10px 12px',
-								fontSize: '13px',
-								color: '#a0aec0'
-							}}>
-							No products match
+						<div style={{padding: '10px 12px', fontSize: '13px', color: '#a0aec0'}}>
+							No stores match
 						</div>
 					) : (
-						filtered.map(p => (
+						filtered.map(s => (
 							<button
-								key={p.id}
-								onMouseDown={() => handleSelect(p.id)}
+								key={s.id}
+								onMouseDown={() => handleSelect(s.id)}
 								style={{
 									display: 'block',
 									width: '100%',
 									padding: '8px 12px',
 									textAlign: 'left',
-									background: p.id === value ? '#f0f7f4' : 'transparent',
+									background: s.id === value ? '#f0f7f4' : 'transparent',
 									border: 'none',
 									borderBottom: '1px solid #f7fafc',
 									cursor: 'pointer',
 									fontSize: '14px',
 									color: '#2d3748',
-									fontFamily: 'inherit'
+									fontFamily: 'inherit',
+									fontWeight: s.id === value ? 600 : 400
 								}}>
-								<span style={{fontWeight: p.id === value ? 600 : 400}}>
-									{p.name}
-								</span>
-								<span
-									style={{
-										fontSize: '12px',
-										color: '#718096',
-										marginLeft: '8px'
-									}}>
-									{p.kcal} kcal/100g
-									{p.servingSize
-										? ` · 1 ${p.servingLabel ?? 'serving'} = ${p.servingSize}g`
-										: ''}
-								</span>
+								{s.name}
 							</button>
 						))
 					)}
