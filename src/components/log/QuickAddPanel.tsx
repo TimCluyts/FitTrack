@@ -30,18 +30,38 @@ export function QuickAddPanel({
 			<div style={{overflow: 'hidden'}}>
 				<div
 					style={{
+						position: 'relative',
 						marginTop: '10px',
 						background: 'linear-gradient(135deg, #f0f7f4, #e8f4ee)',
 						border: '1px solid #b7d9c5',
 						borderRadius: '10px',
 						padding: '12px 14px'
 					}}>
+					<button
+						onClick={onCancel}
+						title="Dismiss"
+						style={{
+							position: 'absolute',
+							top: '6px',
+							right: '8px',
+							background: 'none',
+							border: 'none',
+							cursor: 'pointer',
+							color: '#7aad94',
+							fontSize: '18px',
+							lineHeight: 1,
+							padding: '2px 4px',
+							fontFamily: 'inherit'
+						}}>
+						×
+					</button>
 					<div
 						style={{
 							display: 'flex',
 							gap: '8px',
 							alignItems: 'center',
-							flexWrap: 'wrap'
+							flexWrap: 'wrap',
+							paddingRight: '20px'
 						}}>
 						<span
 							style={{
@@ -95,9 +115,6 @@ export function QuickAddPanel({
 						</select>
 						<Button variant="secondary" onClick={onAdd} disabled={!amount}>
 							+ Add
-						</Button>
-						<Button variant="outline" onClick={onCancel}>
-							Cancel
 						</Button>
 					</div>
 					{product?.servingSize ? (
