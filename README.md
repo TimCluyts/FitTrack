@@ -54,12 +54,17 @@ Log workouts against saved routines and exercises, track sets/reps/weight.
 
 ## Local development
 
+`server.mjs` serves both the static frontend and the REST API from port 3001. Build first, then start the server:
+
 ```bash
 npm install
-npm run dev       # dev server on http://localhost:9005 (hot reload)
+npm run build
+node server.mjs   # http://localhost:3001
 ```
 
-### Running the production build locally
+Iterate by re-running `npm run build` and refreshing the browser. Auth is disabled when `AUTH_USER` / `AUTH_PASS` are not set, so no `.env` is needed locally.
+
+### Running with auth locally
 
 1. Create a `.env` file in the project root:
    ```
@@ -67,13 +72,10 @@ npm run dev       # dev server on http://localhost:9005 (hot reload)
    AUTH_PASS=yourpassword
    PORT=3001
    ```
-2. Build and serve:
-   ```bash
+2. ```bash
    npm run build
    npm run serve   # http://localhost:3001
    ```
-
-> Auth is disabled when `AUTH_USER` / `AUTH_PASS` are not set, so you can skip the `.env` for local dev.
 
 ---
 
