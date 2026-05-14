@@ -24,10 +24,18 @@ export interface RecipeIngredient {
 	amount: number;
 }
 
+export interface SimpleMacros {
+	kcal: number;
+	protein: number;
+	fat: number;
+	carbs: number;
+}
+
 export interface Recipe {
 	id: string;
 	name: string;
 	ingredients: RecipeIngredient[];
+	simpleMacros?: SimpleMacros; // per 100g — when set, ingredients is empty
 }
 
 export interface CustomEntry {

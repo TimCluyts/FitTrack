@@ -22,9 +22,10 @@ export const sumMacros = (entries: MacroTotals[]): MacroTotals =>
 export const calcRecipeTotalWeight = (recipe: Recipe): number =>
 	recipe.ingredients.reduce((sum, ing) => sum + ing.amount, 0);
 
-/** Full recipe macros (all ingredients combined). */
-export const calcRecipeTotalMacros = (recipe: Recipe, products: Product[]): MacroTotals =>
-	sumMacros(
+/** Full recipe macros (all ingredients combined). For simple recipes returns the per-100g values directly. */
+export const calcRecipeTotalMacros = (recipe: Recipe, products: Product[]): MacroTotals => {
+	if (recipe.simpleMacros) return {...recipe.simpleMacros};
+	return sumMacros(
 		recipe.ingredients.map(ing => {
 			const product = products.find(p => p.id === ing.productId);
 			return product
@@ -32,16 +33,27 @@ export const calcRecipeTotalMacros = (recipe: Recipe, products: Product[]): Macr
 				: {kcal: 0, protein: 0, fat: 0, carbs: 0};
 		})
 	);
+};
 
 /**
  * Macros for a given amount (grams) consumed from the recipe.
- * Scales proportionally from the recipe's total weight.
+ * Simple recipes scale linearly from per-100g values.
+ * Ingredient-based recipes scale proportionally from total weight.
  */
 export const calcRecipeMacros = (
 	recipe: Recipe,
 	products: Product[],
 	amountGrams: number
 ): MacroTotals => {
+	if (recipe.simpleMacros) {
+		const {kcal, protein, fat, carbs} = recipe.simpleMacros;
+		return {
+			kcal: Math.round(kcal * amountGrams / 100),
+			protein: Math.round(protein * amountGrams / 10) / 10,
+			fat: Math.round(fat * amountGrams / 10) / 10,
+			carbs: Math.round(carbs * amountGrams / 10) / 10
+		};
+	}
 	const totalWeight = calcRecipeTotalWeight(recipe);
 	if (totalWeight === 0 || amountGrams === 0) return {kcal: 0, protein: 0, fat: 0, carbs: 0};
 	const total = calcRecipeTotalMacros(recipe, products);

@@ -15,10 +15,12 @@ interface RecipeCardProps {
 
 export function RecipeCard({recipe, dimmed, onEdit, onDelete}: RecipeCardProps) {
 	const {data: products = []} = useProducts();
+	const isSimple = !!recipe.simpleMacros;
 	const totalWeight = calcRecipeTotalWeight(recipe);
 	const totals = calcRecipeTotalMacros(recipe, products);
-	const per100g =
-		totalWeight > 0
+	const per100g = isSimple
+		? recipe.simpleMacros!
+		: totalWeight > 0
 			? {
 					kcal: Math.round((totals.kcal / totalWeight) * 100),
 					protein: Math.round((totals.protein / totalWeight) * 1000) / 10,
@@ -38,30 +40,29 @@ export function RecipeCard({recipe, dimmed, onEdit, onDelete}: RecipeCardProps) 
 					gap: '10px'
 				}}>
 				<div>
-					<div
-						style={{
-							fontWeight: 600,
-							fontSize: '16px',
-							color: '#1b4332',
-							marginBottom: '4px'
-						}}>
-						{recipe.name}
-					</div>
-					<div
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							gap: '6px',
-							flexWrap: 'wrap'
-						}}>
-						<span style={{fontSize: '13px', color: '#718096'}}>
-							{recipe.ingredients.length} ingredient
-							{recipe.ingredients.length !== 1 ? 's' : ''} ·{' '}
-							{totalWeight}g total ·
+					<div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px'}}>
+						<span style={{fontWeight: 600, fontSize: '16px', color: '#1b4332'}}>
+							{recipe.name}
 						</span>
+						{isSimple && (
+							<span style={{fontSize: '11px', background: '#fef3c7', color: '#92400e', borderRadius: '3px', padding: '1px 5px'}}>
+								quick
+							</span>
+						)}
+					</div>
+					<div style={{display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap'}}>
+						{isSimple ? (
+							<span style={{fontSize: '13px', color: '#718096'}}>per 100g ·</span>
+						) : (
+							<span style={{fontSize: '13px', color: '#718096'}}>
+								{recipe.ingredients.length} ingredient
+								{recipe.ingredients.length !== 1 ? 's' : ''} ·{' '}
+								{totalWeight}g total ·
+							</span>
+						)}
 						<MacroInline {...totals} />
 					</div>
-					{per100g && (
+					{!isSimple && per100g && (
 						<div style={{fontSize: '12px', color: '#a0aec0', marginTop: '3px'}}>
 							per 100g: {per100g.kcal} kcal · {per100g.protein}g prot ·{' '}
 							{per100g.fat}g fat · {per100g.carbs}g carbs
@@ -82,33 +83,35 @@ export function RecipeCard({recipe, dimmed, onEdit, onDelete}: RecipeCardProps) 
 				</div>
 			</div>
 
-			<div
-				style={{
-					marginTop: '10px',
-					paddingTop: '10px',
-					borderTop: '1px solid #f0f4f0',
-					display: 'flex',
-					flexWrap: 'wrap',
-					gap: '6px'
-				}}>
-				{recipe.ingredients.map((ing, i) => {
-					const p = products.find(pr => pr.id === ing.productId);
-					if (!p) return null;
-					return (
-						<span
-							key={i}
-							style={{
-								fontSize: '12px',
-								background: '#f0f7f4',
-								color: '#2d6a4f',
-								borderRadius: '4px',
-								padding: '3px 8px'
-							}}>
-							{p.name} — {displayAmount(ing.amount, p)}
-						</span>
-					);
-				})}
-			</div>
+			{!isSimple && recipe.ingredients.length > 0 && (
+				<div
+					style={{
+						marginTop: '10px',
+						paddingTop: '10px',
+						borderTop: '1px solid #f0f4f0',
+						display: 'flex',
+						flexWrap: 'wrap',
+						gap: '6px'
+					}}>
+					{recipe.ingredients.map((ing, i) => {
+						const p = products.find(pr => pr.id === ing.productId);
+						if (!p) return null;
+						return (
+							<span
+								key={i}
+								style={{
+									fontSize: '12px',
+									background: '#f0f7f4',
+									color: '#2d6a4f',
+									borderRadius: '4px',
+									padding: '3px 8px'
+								}}>
+								{p.name} — {displayAmount(ing.amount, p)}
+							</span>
+						);
+					})}
+				</div>
+			)}
 		</Card>
 	);
 }

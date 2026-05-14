@@ -1,5 +1,6 @@
 import {Button} from '../ui/Button';
 import {Field} from '../ui/Field';
+import {RecipeCombobox} from '../RecipeCombobox';
 import {MealSelect} from './MealSelect';
 import type {MealTime, Recipe} from '../../types/fitness';
 
@@ -47,18 +48,11 @@ export function RecipeEntryForm({
 			}}>
 			<Field style={{flex: '2 1 200px'}}>
 				<Field.Label>Recipe</Field.Label>
-				<Field.Select
+				<RecipeCombobox
+					recipes={recipes}
 					value={recipeId}
-					onChange={e => onRecipeChange(e.target.value)}>
-					<option value="">Select a recipe…</option>
-					{[...recipes]
-						.sort((a, b) => a.name.localeCompare(b.name))
-						.map(r => (
-							<option key={r.id} value={r.id}>
-								{r.name}
-							</option>
-						))}
-				</Field.Select>
+					onChange={onRecipeChange}
+				/>
 			</Field>
 			<Field style={{flex: '1 1 120px'}}>
 				<Field.Label>Amount (g)</Field.Label>

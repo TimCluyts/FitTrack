@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import {useRecipes, useAddRecipe, useUpdateRecipe} from './useApi';
-import type {RecipeIngredient} from '../types/fitness';
+import type {RecipeIngredient, SimpleMacros} from '../types/fitness';
 
 export function useRecipeMode() {
 	const [editing, setEditing] = useState<string | null>(null);
@@ -9,9 +9,13 @@ export function useRecipeMode() {
 	const updateRecipe = useUpdateRecipe();
 
 	const editingRecipe =
-		editing && editing !== 'new'
+		editing && editing !== 'new' && editing !== 'new-quick'
 			? recipes.find(r => r.id === editing)
 			: undefined;
+
+	const isQuickMode =
+		editing === 'new-quick' ||
+		(!!editingRecipe && !!editingRecipe.simpleMacros);
 
 	const handleSave = (name: string, ingredients: RecipeIngredient[]) => {
 		if (editing === 'new') addRecipe.mutate({name, ingredients});
@@ -19,5 +23,11 @@ export function useRecipeMode() {
 		setEditing(null);
 	};
 
-	return {editing, setEditing, editingRecipe, handleSave};
+	const handleSaveQuick = (name: string, simpleMacros: SimpleMacros) => {
+		if (editing === 'new-quick') addRecipe.mutate({name, ingredients: [], simpleMacros});
+		else if (editing) updateRecipe.mutate({id: editing, data: {name, ingredients: [], simpleMacros}});
+		setEditing(null);
+	};
+
+	return {editing, setEditing, editingRecipe, isQuickMode, handleSave, handleSaveQuick};
 }
