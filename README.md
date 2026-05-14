@@ -1,12 +1,54 @@
 # FitTrack
 
-Personal fitness tracker for logging nutrition, weight, and training. Supports multiple users (shared products/recipes, separate logs per user). Data is persisted server-side in a JSON file.
+Personal fitness tracker for two users (Tim & Davine). Supports daily food logging, macro tracking, weight, workouts, and grocery price comparison. Products and recipes are shared; food logs, weight, workouts, and goals are per-user. Data is persisted server-side in a single `data.json` file.
 
 ## Stack
 
-- React 19 + TypeScript, TanStack Router, Zustand, Recharts
-- Zero-dependency Node.js HTTP server (`server.mjs`)
+- React 19 + TypeScript — TanStack Router (file-based), TanStack React Query, Recharts
+- Zustand — user selection only (`activeUserId` persisted to `localStorage`)
+- Zero-dependency Node.js HTTP server (`server.mjs`) — serves the built frontend and a `/api/*` REST layer
 - Built with Rspack
+
+---
+
+## Features
+
+### Log
+Daily food entries grouped by meal time (Morning / Lunch / In-Between / Evening / Snack).
+
+| Entry type | How it works |
+|---|---|
+| **Product** | Select a saved product, enter grams (or servings). Hover a row to reveal a *↓ custom* action that converts the entry in-place. |
+| **Recipe** | Select a recipe by searchable name, enter grams. Works for both ingredient-based and quick recipes. |
+| **Custom** | Type a description + total macros directly. For restaurant meals or one-off estimates — never pollutes the product list. |
+
+Converting a product entry to custom bakes in the calculated macros. Optionally deletes the product from the shared list, in which case all other log entries referencing it (across both users) are also migrated to custom entries automatically.
+
+### Products
+Shared product database with per-100g macros and optional serving sizes (e.g. "1 slice = 30g"). Duplicate detection warns you — with the existing product's macros — when a name you're typing is already in the list.
+
+### Recipes
+Two recipe types:
+
+- **Ingredient-based** — add products with amounts; macros are derived from ingredients.
+- **Quick recipe** — enter per-100g macros directly, no ingredient breakdown needed. Useful for recurring restaurant dishes or labelled ready-made meals.
+
+Both types appear in the same searchable recipe picker on the Log page, tagged *quick* where applicable.
+
+### Reports
+- Body weight chart with a linear trend line.
+- Daily macro summary.
+
+### Grocery
+- Log product prices per store, with optional promo/regular price distinction.
+- **Price History** table with searchable product and store filters.
+- **Compare Stores** tab:
+  - *Current prices* — bar chart of latest regular price per store for a selected product.
+  - *Evolution* — line chart of full price history per store for a selected product.
+- **Store index** — horizontal bar chart of each store's average price premium above the cheapest option, across all comparable products. Toggle to *Over time* to see that index evolve as prices were logged.
+
+### Training
+Log workouts against saved routines and exercises, track sets/reps/weight.
 
 ---
 
@@ -17,7 +59,7 @@ npm install
 npm run dev       # dev server on http://localhost:9005 (hot reload)
 ```
 
-### Running the production server locally
+### Running the production build locally
 
 1. Create a `.env` file in the project root:
    ```
@@ -31,7 +73,7 @@ npm run dev       # dev server on http://localhost:9005 (hot reload)
    npm run serve   # http://localhost:3001
    ```
 
-> Auth is disabled when `AUTH_USER`/`AUTH_PASS` are not set, so you can skip the `.env` for local dev.
+> Auth is disabled when `AUTH_USER` / `AUTH_PASS` are not set, so you can skip the `.env` for local dev.
 
 ---
 
@@ -67,7 +109,7 @@ flyctl apps create tcfittrack
 flyctl volumes create fittrack_data --region ams --size 1
 ```
 
-**5. Set secrets** (stored securely on Fly, never in any file)
+**5. Set secrets**
 
 ```bash
 flyctl secrets set AUTH_USER=yourname AUTH_PASS=yourpassword
@@ -81,16 +123,12 @@ npm run deploy
 
 The app will be live at **https://tcfittrack.fly.dev**.
 
----
-
 ### Ongoing deploys
 
 ```bash
 npm run deploy    # build Docker image and deploy to Fly.io
 npm run logs      # stream live logs from the running machine
 ```
-
----
 
 ### How it works on Fly.io
 
@@ -105,23 +143,28 @@ npm run logs      # stream live logs from the running machine
 
 ---
 
-## Backup / restore data
+## Backup / restore
 
-Use the **Export Backup** button in the app to download a full JSON snapshot. Use **Import Backup** to restore it on any instance. Do this before a destructive redeploy if needed.
+Use **Export Backup** on the Products page to download a full JSON snapshot. Use **Import Backup** to restore it on any instance. Do this before a destructive redeploy if needed.
 
 ---
 
 ## Project structure
 
 ```
-server.mjs              Node.js HTTP server (static files + /api/data)
+server.mjs              Node.js HTTP server (static files + REST API)
 fly.toml                Fly.io deployment config
 Dockerfile              Multi-stage build
 src/
-  routes/               Page components (TanStack Router file-based routing)
-  components/           UI + domain components
-  store/                Zustand stores (nutrition, log, weight, training, user)
-  hooks/                Shared logic hooks
-  utils/                Helpers (macros, backup, server sync)
-  types/                Shared TypeScript types
+  routes/               Page-level components (TanStack Router file-based routing)
+  components/           UI and feature components
+    grocery/            Price logging and store comparison
+    log/                Daily food log entry forms and rows
+    products/           Product form and list
+    recipes/            Recipe editor and quick recipe editor
+    report/             Charts for weight and macros
+    ui/                 Shared UI primitives (Button, Card, Field, DataTable, …)
+  hooks/                React Query wrappers (useApi) and feature hooks
+  utils/                Pure helpers — macros, serving, price calculations, backup
+  types/                Shared TypeScript interfaces (LogEntry, Product, Recipe, …)
 ```
