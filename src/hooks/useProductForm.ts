@@ -1,5 +1,5 @@
-import {useState} from 'react';
-import {useAddProduct, useUpdateProduct} from './useApi';
+import {useMemo, useState} from 'react';
+import {useAddProduct, useUpdateProduct, useProducts} from './useApi';
 import type {Product} from '../types/fitness';
 
 export type ProductFormData = {
@@ -25,9 +25,20 @@ const empty: ProductFormData = {
 export function useProductForm() {
 	const addProduct = useAddProduct();
 	const updateProduct = useUpdateProduct();
+	const {data: products = []} = useProducts();
 	const [editId, setEditId] = useState<string | null>(null);
 	const [form, setForm] = useState<ProductFormData>(empty);
 	const [visible, setVisible] = useState(false);
+
+	const similarProducts = useMemo(() => {
+		const query = form.name.trim().toLowerCase();
+		if (query.length < 2) return [];
+		return products.filter(p => {
+			if (p.id === editId) return false;
+			const name = p.name.toLowerCase();
+			return name.includes(query) || query.includes(name);
+		});
+	}, [form.name, products, editId]);
 
 	const setField = (field: keyof ProductFormData, value: string) =>
 		setForm(prev => ({...prev, [field]: value}));
@@ -90,6 +101,7 @@ export function useProductForm() {
 		setField,
 		visible,
 		isEditing: editId !== null,
+		similarProducts,
 		open,
 		edit,
 		cancel,

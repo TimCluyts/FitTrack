@@ -32,6 +32,7 @@ function ProductsPage() {
 					form={form.form}
 					onField={form.setField}
 					isEditing={form.isEditing}
+					similarProducts={form.similarProducts}
 					onSubmit={form.submit}
 					onCancel={form.cancel}
 				/>
