@@ -74,6 +74,14 @@ export interface WeightEntry {
 	note?: string;
 }
 
+export interface MeasurementEntry {
+	id: string;
+	date: string;
+	waistCm?: number;
+	chestCm?: number;
+	note?: string;
+}
+
 export interface Exercise {
 	id: string;
 	name: string;

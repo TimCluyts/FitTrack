@@ -97,6 +97,27 @@ export const useDeleteWeightEntry = () => {
 	});
 };
 
+export const useMeasurementEntries = () => {
+	const uid = useUid();
+	return useQuery({queryKey: ['measurements', uid], queryFn: () => api.getMeasurements(uid!), enabled: !!uid});
+};
+export const useAddMeasurementEntry = () => {
+	const qc = useQueryClient();
+	const uid = useUid();
+	return useMutation({
+		mutationFn: (d: Parameters<typeof api.addMeasurementEntry>[1]) => api.addMeasurementEntry(uid!, d),
+		onSuccess: () => qc.invalidateQueries({queryKey: ['measurements', uid]})
+	});
+};
+export const useDeleteMeasurementEntry = () => {
+	const qc = useQueryClient();
+	const uid = useUid();
+	return useMutation({
+		mutationFn: (id: string) => api.deleteMeasurementEntry(uid!, id),
+		onSuccess: () => qc.invalidateQueries({queryKey: ['measurements', uid]})
+	});
+};
+
 export const useExercises = () => {
 	const uid = useUid();
 	return useQuery({queryKey: ['exercises', uid], queryFn: () => api.getExercises(uid!), enabled: !!uid});

@@ -61,12 +61,18 @@ function MacroToggle({mode, onChange}: {mode: MacroMode; onChange: (m: MacroMode
 	);
 }
 
+const PAGE_SIZE = 20;
+
 export function ProductTable({products, onEdit, onDelete, favoriteIds = [], onToggleFavorite}: ProductTableProps) {
 	const [mode, setMode] = useState<MacroMode>('100g');
+	const [limit, setLimit] = useState(PAGE_SIZE);
 
 	if (products.length === 0) return null;
 
 	const hasAnyServing = products.some(p => p.servingSize);
+	const sorted = [...products].sort((a, b) => a.name.localeCompare(b.name));
+	const visible = sorted.slice(0, limit);
+	const hasMore = sorted.length > limit;
 
 	return (
 		<div>
@@ -76,8 +82,7 @@ export function ProductTable({products, onEdit, onDelete, favoriteIds = [], onTo
 				</div>
 			)}
 			<DataTable columns={COLUMNS} minWidth={500}>
-				{[...products]
-					.sort((a, b) => a.name.localeCompare(b.name))
+				{visible
 					.map(p => {
 						const macros =
 							mode === 'serving' && p.servingSize
@@ -149,6 +154,13 @@ export function ProductTable({products, onEdit, onDelete, favoriteIds = [], onTo
 						);
 					})}
 			</DataTable>
+			{hasMore && (
+				<div style={{textAlign: 'center', marginTop: '12px'}}>
+					<Button variant="outline" size="sm" onClick={() => setLimit(l => l + PAGE_SIZE)}>
+						Show more ({sorted.length - limit} remaining)
+					</Button>
+				</div>
+			)}
 		</div>
 	);
 }

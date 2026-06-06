@@ -63,8 +63,8 @@ function initData() {
 		stores: [],
 		prices: [],
 		userData: {
-			[timId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []},
-			[davineId]: {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []}
+			[timId]: {logEntries: [], weightEntries: [], measurementEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []},
+			[davineId]: {logEntries: [], weightEntries: [], measurementEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []}
 		}
 	};
 }
@@ -109,8 +109,8 @@ function migrate(d) {
 			{id: timId, name: 'Tim'},
 			{id: davineId, name: 'Davine'}
 		];
-		newData.userData[timId] = {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []};
-		newData.userData[davineId] = {logEntries: [], weightEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []};
+		newData.userData[timId] = {logEntries: [], weightEntries: [], measurementEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []};
+		newData.userData[davineId] = {logEntries: [], weightEntries: [], measurementEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []};
 	}
 
 	return newData;
@@ -149,6 +149,7 @@ function ensureUserData(data, userId) {
 		data.userData[userId] = {
 			logEntries: [],
 			weightEntries: [],
+			measurementEntries: [],
 			exercises: [],
 			routines: [],
 			workoutLogs: [],
@@ -158,6 +159,7 @@ function ensureUserData(data, userId) {
 	if (!data.userData[userId].runLogs) data.userData[userId].runLogs = [];
 	if (!data.userData[userId].goals) data.userData[userId].goals = {};
 	if (!data.userData[userId].favorites) data.userData[userId].favorites = [];
+	if (!data.userData[userId].measurementEntries) data.userData[userId].measurementEntries = [];
 }
 
 function matchPath(pattern, url) {
@@ -368,6 +370,36 @@ async function handleApi(req, res) {
 		const data = readData();
 		ensureUserData(data, params.uid);
 		data.userData[params.uid].weightEntries = data.userData[params.uid].weightEntries.filter(e => e.id !== params.id);
+		writeData(data);
+		return json(res, 200, {ok: true});
+	}
+
+	// GET /api/users/:uid/measurements
+	params = matchPath('/api/users/:uid/measurements', url);
+	if (method === 'GET' && params) {
+		const data = readData();
+		ensureUserData(data, params.uid);
+		return json(res, 200, data.userData[params.uid].measurementEntries);
+	}
+
+	// POST /api/users/:uid/measurements
+	params = matchPath('/api/users/:uid/measurements', url);
+	if (method === 'POST' && params) {
+		const body = await readBody(req);
+		const data = readData();
+		ensureUserData(data, params.uid);
+		const item = {id: randomUUID(), ...body};
+		data.userData[params.uid].measurementEntries.push(item);
+		writeData(data);
+		return json(res, 201, item);
+	}
+
+	// DELETE /api/users/:uid/measurements/:id
+	params = matchPath('/api/users/:uid/measurements/:id', url);
+	if (method === 'DELETE' && params) {
+		const data = readData();
+		ensureUserData(data, params.uid);
+		data.userData[params.uid].measurementEntries = data.userData[params.uid].measurementEntries.filter(e => e.id !== params.id);
 		writeData(data);
 		return json(res, 200, {ok: true});
 	}

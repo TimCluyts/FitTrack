@@ -3,6 +3,8 @@ import {PageHeader} from '../components/ui/PageHeader';
 import {WeightLogForm} from '../components/weight/WeightLogForm';
 import {WeightChart} from '../components/weight/WeightChart';
 import {WeightHistoryTable} from '../components/weight/WeightHistoryTable';
+import {MeasurementsLogForm} from '../components/weight/MeasurementsLogForm';
+import {MeasurementsHistoryTable} from '../components/weight/MeasurementsHistoryTable';
 
 export const Route = createFileRoute('/weight')({
 	component: WeightPage
@@ -11,10 +13,12 @@ export const Route = createFileRoute('/weight')({
 function WeightPage() {
 	return (
 		<div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
-			<PageHeader title="Weight" />
+			<PageHeader title="Weight & Measurements" />
 			<WeightLogForm />
 			<WeightChart />
 			<WeightHistoryTable />
+			<MeasurementsLogForm />
+			<MeasurementsHistoryTable />
 		</div>
 	);
 }

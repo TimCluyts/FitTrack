@@ -1,4 +1,4 @@
-import type {DailyGoals, Exercise, LogEntry, PriceEntry, Product, Recipe, Routine, RunLog, Store, WeightEntry, WorkoutLog} from '../types/fitness';
+import type {DailyGoals, Exercise, LogEntry, MeasurementEntry, PriceEntry, Product, Recipe, Routine, RunLog, Store, WeightEntry, WorkoutLog} from '../types/fitness';
 import type {User} from '../store/userStore';
 
 const BASE = '/api';
@@ -39,6 +39,10 @@ export const api = {
 	getWeight: (uid: string) => apiFetch<WeightEntry[]>(`/users/${uid}/weight`),
 	addWeightEntry: (uid: string, d: Omit<WeightEntry, 'id'>) => post(`/users/${uid}/weight`, d) as Promise<WeightEntry>,
 	deleteWeightEntry: (uid: string, id: string) => del(`/users/${uid}/weight/${id}`),
+
+	getMeasurements: (uid: string) => apiFetch<MeasurementEntry[]>(`/users/${uid}/measurements`),
+	addMeasurementEntry: (uid: string, d: Omit<MeasurementEntry, 'id'>) => post(`/users/${uid}/measurements`, d) as Promise<MeasurementEntry>,
+	deleteMeasurementEntry: (uid: string, id: string) => del(`/users/${uid}/measurements/${id}`),
 
 	getExercises: (uid: string) => apiFetch<Exercise[]>(`/users/${uid}/exercises`),
 	addExercise: (uid: string, d: Omit<Exercise, 'id'>) => post(`/users/${uid}/exercises`, d) as Promise<Exercise>,
