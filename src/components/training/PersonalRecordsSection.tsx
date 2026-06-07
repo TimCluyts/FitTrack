@@ -1,26 +1,40 @@
 import {useMemo} from 'react';
 import {useExercises, useWorkoutLogs} from '../../hooks/useApi';
-import {WeightPRsCard} from './WeightPRsCard';
+import {WeightPRsCard, type PR} from './WeightPRsCard';
 import {SECTION_LABEL} from './styles';
+
+function estimatedOneRepMax(weight: number, reps: number): number {
+	return weight * (1 + reps / 30);
+}
 
 export function PersonalRecordsSection() {
 	const {data: exercises = []} = useExercises();
 	const {data: workoutLogs = []} = useWorkoutLogs();
 
 	const weightPRs = useMemo(() => {
-		const maxByExercise = new Map<string, number>();
-		for (const log of workoutLogs) {
+		const bestByExercise = new Map<string, Omit<PR, 'name'>>();
+		const sortedLogs = [...workoutLogs].sort((a, b) => a.date.localeCompare(b.date));
+		for (const log of sortedLogs) {
 			for (const ex of log.exercises) {
-				const curr = maxByExercise.get(ex.exerciseId) ?? 0;
 				for (const set of ex.sets) {
-					if (set.weight > curr) maxByExercise.set(ex.exerciseId, set.weight);
+					const oneRepMax = estimatedOneRepMax(set.weight, set.reps);
+					const curr = bestByExercise.get(ex.exerciseId);
+					if (!curr || oneRepMax > curr.oneRepMax) {
+						bestByExercise.set(ex.exerciseId, {
+							exerciseId: ex.exerciseId,
+							weight: set.weight,
+							reps: set.reps,
+							oneRepMax,
+							date: log.date
+						});
+					}
 				}
 			}
 		}
 		return exercises
 			.flatMap(ex => {
-				const weight = maxByExercise.get(ex.id);
-				return weight != null ? [{name: ex.name, weight}] : [];
+				const pr = bestByExercise.get(ex.id);
+				return pr ? [{...pr, name: ex.name}] : [];
 			})
 			.sort((a, b) => a.name.localeCompare(b.name));
 	}, [exercises, workoutLogs]);

@@ -1,34 +1,41 @@
 import {Card} from '../ui/Card';
+import {DataTable} from '../ui/DataTable';
 
-interface PR {
+const COLUMNS = [
+	{label: 'Exercise', align: 'left' as const},
+	{label: 'Best set', align: 'right' as const},
+	{label: 'Est. 1RM', align: 'right' as const},
+	{label: 'Achieved', align: 'right' as const}
+];
+
+export interface PR {
+	exerciseId: string;
 	name: string;
 	weight: number;
+	reps: number;
+	oneRepMax: number;
+	date: string;
 }
 
 interface WeightPRsCardProps {
 	prs: PR[];
 }
 
-export function WeightPRsCard({prs}: WeightPRsCardProps) {
+export function WeightPRsCard({prs}: Readonly<WeightPRsCardProps>) {
 	return (
 		<Card>
-			<div style={{display: 'flex', flexWrap: 'wrap', gap: '8px'}}>
+			<DataTable columns={COLUMNS} minWidth={420}>
 				{prs.map(pr => (
-					<span
-						key={pr.name}
-						style={{
-							fontSize: '13px',
-							background: '#fffbeb',
-							color: '#92400e',
-							border: '1px solid #fde68a',
-							borderRadius: '4px',
-							padding: '4px 10px',
-							fontWeight: 500
-						}}>
-						🏆 {pr.name}: {pr.weight} kg
-					</span>
+					<DataTable.Row key={pr.exerciseId}>
+						<DataTable.Cell>🏆 {pr.name}</DataTable.Cell>
+						<DataTable.Cell align="right">
+							{pr.weight} kg × {pr.reps}
+						</DataTable.Cell>
+						<DataTable.Cell align="right">{Math.round(pr.oneRepMax)} kg</DataTable.Cell>
+						<DataTable.Cell align="right">{pr.date}</DataTable.Cell>
+					</DataTable.Row>
 				))}
-			</div>
+			</DataTable>
 		</Card>
 	);
 }
