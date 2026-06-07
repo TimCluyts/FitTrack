@@ -4,7 +4,7 @@ import {Button} from '../ui/Button';
 import {Card} from '../ui/Card';
 import {DataTable} from '../ui/DataTable';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 const COLUMNS = [
 	{label: 'Date', align: 'left' as const},

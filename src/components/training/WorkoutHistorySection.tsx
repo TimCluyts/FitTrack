@@ -4,7 +4,7 @@ import {WorkoutLogCard} from './WorkoutLogCard';
 import {Button} from '../ui/Button';
 import {SECTION_LABEL} from './styles';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 4;
 
 export function WorkoutHistorySection() {
 	const {data: exercises = []} = useExercises();

@@ -107,7 +107,7 @@ function TrainingPage() {
 				onEdit={id => setMode({view: 'editRoutine', routineId: id})}
 			/>
 
-			{mode.view === 'overview' && <PersonalRecordsSection />}
+			{/* {mode.view === 'overview' && <PersonalRecordsSection />} */}
 			{mode.view === 'overview' && <WorkoutHistorySection />}
 			{mode.view === 'overview' && <RunHistorySection />}
 		</div>

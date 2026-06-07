@@ -1,7 +1,11 @@
+import {useState} from 'react';
+import {Button} from '../ui/Button';
 import {Card} from '../ui/Card';
 import {DataTable} from '../ui/DataTable';
 import {CHART_TITLE} from './chartStyles';
 import type {WorkoutLog} from '../../types/fitness';
+
+const PAGE_SIZE = 4;
 
 const COLUMNS = [
 	{label: 'Date', align: 'left' as const},
@@ -15,13 +19,16 @@ interface RecentWorkoutsCardProps {
 }
 
 export function RecentWorkoutsCard({workoutLogs}: RecentWorkoutsCardProps) {
+	const [limit, setLimit] = useState(PAGE_SIZE);
 	const sorted = [...workoutLogs].sort((a, b) => b.date.localeCompare(a.date));
+	const visible = sorted.slice(0, limit);
+	const hasMore = sorted.length > limit;
 
 	return (
 		<Card>
 			<div style={CHART_TITLE}>Recent workouts</div>
 			<DataTable columns={COLUMNS} minWidth={400}>
-				{sorted.slice(0, 20).map(log => {
+				{visible.map(log => {
 					const totalSets = log.exercises.reduce(
 						(acc, ex) => acc + ex.sets.length,
 						0
@@ -43,6 +50,13 @@ export function RecentWorkoutsCard({workoutLogs}: RecentWorkoutsCardProps) {
 					);
 				})}
 			</DataTable>
+			{hasMore && (
+				<div style={{textAlign: 'center', marginTop: '12px'}}>
+					<Button variant="outline" size="sm" onClick={() => setLimit(l => l + PAGE_SIZE)}>
+						Show more ({sorted.length - limit} remaining)
+					</Button>
+				</div>
+			)}
 		</Card>
 	);
 }
