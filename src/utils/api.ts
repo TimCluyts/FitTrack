@@ -1,3 +1,4 @@
+import type {Checklist, ChecklistDraft} from '../types/checklist';
 import type {DailyGoals, Exercise, LogEntry, MeasurementEntry, PriceEntry, Product, Recipe, Routine, RunLog, Store, WeightEntry, WorkoutLog} from '../types/fitness';
 import type {User} from '../store/userStore';
 
@@ -77,4 +78,10 @@ export const api = {
 	addPrice: (d: Omit<PriceEntry, 'id'>) => post('/prices', d) as Promise<PriceEntry>,
 	updatePrice: (id: string, d: Partial<Omit<PriceEntry, 'id'>>) => put(`/prices/${id}`, d) as Promise<PriceEntry>,
 	deletePrice: (id: string) => del(`/prices/${id}`),
+
+	getChecklists: () => apiFetch<Checklist[]>('/checklists'),
+	addChecklist: (d: ChecklistDraft) => post('/checklists', d) as Promise<Checklist>,
+	updateChecklist: (id: string, d: Partial<ChecklistDraft>) => put(`/checklists/${id}`, d) as Promise<Checklist>,
+	deleteChecklist: (id: string) => del(`/checklists/${id}`),
+	resetChecklist: (id: string) => post(`/checklists/${id}/reset`, {}) as Promise<Checklist>,
 };

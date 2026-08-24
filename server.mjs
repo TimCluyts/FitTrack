@@ -62,6 +62,7 @@ function initData() {
 		recipes: [],
 		stores: [],
 		prices: [],
+		checklists: [],
 		userData: {
 			[timId]: {logEntries: [], weightEntries: [], measurementEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []},
 			[davineId]: {logEntries: [], weightEntries: [], measurementEntries: [], exercises: [], routines: [], workoutLogs: [], runLogs: [], goals: {}, favorites: []}
@@ -129,6 +130,7 @@ function readData() {
 		let dirty = migrated !== parsed;
 		if (!migrated.stores) { migrated.stores = []; dirty = true; }
 		if (!migrated.prices) { migrated.prices = []; dirty = true; }
+		if (!migrated.checklists) { migrated.checklists = []; dirty = true; }
 		if (dirty) {
 			writeFileSync(DATA, JSON.stringify(migrated, null, 2));
 		}
@@ -160,6 +162,22 @@ function ensureUserData(data, userId) {
 	if (!data.userData[userId].goals) data.userData[userId].goals = {};
 	if (!data.userData[userId].favorites) data.userData[userId].favorites = [];
 	if (!data.userData[userId].measurementEntries) data.userData[userId].measurementEntries = [];
+}
+
+function normalizeChecklist(input, existing) {
+	const items = Array.isArray(input?.items) ? input.items : (existing?.items ?? []);
+	return {
+		id: existing?.id ?? randomUUID(),
+		name: typeof input?.name === 'string' ? input.name : (existing?.name ?? 'Checklist'),
+		emoji: input?.emoji ?? existing?.emoji ?? '',
+		items: items.map(it => ({
+			id: it?.id ?? randomUUID(),
+			text: String(it?.text ?? ''),
+			done: it?.done === true
+		})),
+		runCount: existing?.runCount ?? 0,
+		lastResetAt: existing?.lastResetAt
+	};
 }
 
 function matchPath(pattern, url) {
@@ -664,6 +682,65 @@ async function handleApi(req, res) {
 		data.prices = data.prices.filter(p => p.id !== params.id);
 		writeData(data);
 		return json(res, 200, {ok: true});
+	}
+
+	// GET /api/checklists
+	if (method === 'GET' && matchPath('/api/checklists', url)) {
+		const data = readData();
+		return json(res, 200, data.checklists ?? []);
+	}
+
+	// POST /api/checklists
+	if (method === 'POST' && matchPath('/api/checklists', url)) {
+		const body = await readBody(req);
+		if (!body?.name) return badRequest(res, 'name required');
+		const data = readData();
+		if (!data.checklists) data.checklists = [];
+		const item = normalizeChecklist(body, null);
+		data.checklists.push(item);
+		writeData(data);
+		return json(res, 201, item);
+	}
+
+	// PUT /api/checklists/:id
+	params = matchPath('/api/checklists/:id', url);
+	if (method === 'PUT' && params) {
+		const body = await readBody(req);
+		const data = readData();
+		if (!data.checklists) data.checklists = [];
+		const idx = data.checklists.findIndex(c => c.id === params.id);
+		if (idx === -1) return notFound(res);
+		data.checklists[idx] = normalizeChecklist(body, data.checklists[idx]);
+		writeData(data);
+		return json(res, 200, data.checklists[idx]);
+	}
+
+	// DELETE /api/checklists/:id
+	params = matchPath('/api/checklists/:id', url);
+	if (method === 'DELETE' && params) {
+		const data = readData();
+		if (!data.checklists) data.checklists = [];
+		data.checklists = data.checklists.filter(c => c.id !== params.id);
+		writeData(data);
+		return json(res, 200, {ok: true});
+	}
+
+	// POST /api/checklists/:id/reset — untick everything for the next run
+	params = matchPath('/api/checklists/:id/reset', url);
+	if (method === 'POST' && params) {
+		const data = readData();
+		if (!data.checklists) data.checklists = [];
+		const idx = data.checklists.findIndex(c => c.id === params.id);
+		if (idx === -1) return notFound(res);
+		const current = data.checklists[idx];
+		data.checklists[idx] = {
+			...current,
+			items: current.items.map(it => ({...it, done: false})),
+			runCount: (current.runCount ?? 0) + 1,
+			lastResetAt: new Date().toISOString()
+		};
+		writeData(data);
+		return json(res, 200, data.checklists[idx]);
 	}
 
 	// GET /api/store

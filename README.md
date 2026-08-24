@@ -50,6 +50,9 @@ Both types appear in the same searchable recipe picker on the Log page, tagged *
 ### Training
 Log workouts against saved routines and exercises, track sets/reps/weight.
 
+### Checklists
+A deliberately separate corner of the app — reusable, **resettable** checklists that have nothing to do with fitness data (pizza night, camping trip, …). Manage the items of each list in *Edit* mode (add, rename, reorder, delete), tick them off in *Run* mode, then hit **Reset for next time** to untick everything for the next run. Each list keeps a reset count and the date it was last reset. Checklists are shared between users, like products and recipes.
+
 ---
 
 ## Local development
@@ -165,6 +168,7 @@ Dockerfile              Multi-stage build
 src/
   routes/               Page-level components (TanStack Router file-based routing)
   components/           UI and feature components
+    checklists/         Resettable checklists (standalone feature)
     grocery/            Price logging and store comparison
     log/                Daily food log entry forms and rows
     products/           Product form and list

@@ -272,3 +272,56 @@ export const useDeletePrice = () => {
 	const qc = useQueryClient();
 	return useMutation({mutationFn: api.deletePrice, onSuccess: () => qc.invalidateQueries({queryKey: ['prices']})});
 };
+
+// ── Checklists (standalone feature, shared between users) ────────────────────
+export const useChecklists = () => useQuery({queryKey: ['checklists'], queryFn: api.getChecklists});
+
+export const useAddChecklist = () => {
+	const qc = useQueryClient();
+	return useMutation({
+		mutationFn: api.addChecklist,
+		onSuccess: () => qc.invalidateQueries({queryKey: ['checklists']})
+	});
+};
+
+export const useUpdateChecklist = () => {
+	const qc = useQueryClient();
+	return useMutation({
+		mutationFn: ({id, data}: {id: string; data: Parameters<typeof api.updateChecklist>[1]}) =>
+			api.updateChecklist(id, data),
+		// Ticking a box should feel instant — patch the cache, roll back on failure.
+		onMutate: async ({id, data}) => {
+			await qc.cancelQueries({queryKey: ['checklists']});
+			const previous = qc.getQueryData<import('../types/checklist').Checklist[]>(['checklists']);
+			// Items only get patched in when they all carry a server id — a
+			// freshly added item waits for the response instead.
+			const settled = data.items?.every(i => !!i.id)
+				? (data.items as import('../types/checklist').ChecklistItem[])
+				: undefined;
+			qc.setQueryData<import('../types/checklist').Checklist[]>(['checklists'], list =>
+				list?.map(c => (c.id === id ? {...c, ...data, items: settled ?? c.items} : c))
+			);
+			return {previous};
+		},
+		onError: (_err, _vars, ctx) => {
+			if (ctx?.previous) qc.setQueryData(['checklists'], ctx.previous);
+		},
+		onSettled: () => qc.invalidateQueries({queryKey: ['checklists']})
+	});
+};
+
+export const useDeleteChecklist = () => {
+	const qc = useQueryClient();
+	return useMutation({
+		mutationFn: api.deleteChecklist,
+		onSuccess: () => qc.invalidateQueries({queryKey: ['checklists']})
+	});
+};
+
+export const useResetChecklist = () => {
+	const qc = useQueryClient();
+	return useMutation({
+		mutationFn: api.resetChecklist,
+		onSuccess: () => qc.invalidateQueries({queryKey: ['checklists']})
+	});
+};

@@ -100,6 +100,15 @@ function RootLayout() {
 								<NavLink to="/products">Products</NavLink>
 								<NavLink to="/recipes">Recipes</NavLink>
 								<NavLink to="/grocery">Grocery</NavLink>
+								<span
+									style={{
+										width: '1px',
+										height: '20px',
+										background: 'rgba(255,255,255,0.25)',
+										margin: '0 6px'
+									}}
+								/>
+								<NavLink to="/checklists">Checklists</NavLink>
 								<UserBadge />
 							</div>
 						)}
@@ -135,6 +144,16 @@ function RootLayout() {
 							</MobileNavLink>
 							<MobileNavLink to="/grocery" onClick={closeMenu}>
 								Grocery
+							</MobileNavLink>
+							<div
+								style={{
+									height: '1px',
+									background: 'rgba(255,255,255,0.15)',
+									margin: '8px 16px'
+								}}
+							/>
+							<MobileNavLink to="/checklists" onClick={closeMenu}>
+								Checklists
 							</MobileNavLink>
 						</div>
 					)}
